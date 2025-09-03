@@ -1,7 +1,7 @@
 <!-- filepath: c:\Users\kyle\projects\slopbot\README.md -->
 # gemini-nano-banana-discord-bot
 
-![RooCode Badge](./roocode-badge-blk.webp)
+![RooCode Badge](./images/RooCode-Badge-blk.webp)
 
 Vibe coded with RooCode.
 
