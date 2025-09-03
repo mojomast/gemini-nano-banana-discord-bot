@@ -1,8 +1,13 @@
-# Slop Bot
+<!-- filepath: c:\Users\kyle\projects\slopbot\README.md -->
+# gemini-nano-banana-discord-bot
+
+![RooCode Badge](./roocode-badge-blk.webp)
+
+Vibe coded with RooCode.
 
 ## 🛠️ Development Tools & AI Integrations
 
-[![Vibe](https://img.shields.io/badge/Tools-Vibe-blue?style=for-the-badge)]() [![Roo Code](https://img.shields.io/badge/IDE-Roo%20Code-orange?style=for-the-badge)]() [![VS Studio](https://img.shields.io/badge/IDE-VS%20Studio-blue?style=for-the-badge)]() [![RooCloud](https://img.shields.io/badge/Cloud-RooCloud-green?style=for-the-badge)]() [![GitHub Copilot](https://img.shields.io/badge/AI-GitHub%20Copilot-black?style=for-the-badge)]() [![Grok Code Fast](https://img.shields.io/badge/AI-Grok%20Code%20Fast-purple?style=for-the-badge)]() [![GPT 5](https://img.shields.io/badge/AI-GPT%205-red?style=for-the-badge)]() [![GPT 5 Mini](https://img.shields.io/badge/AI-GPT%205%20Mini-red?style=for-the-badge)]() [![Claude 4 Sonnet](https://img.shields.io/badge/AI-Claude%204%20Sonnet-orange?style=for-the-badge)]()
+[![Vibe](https://img.shields.io/badge/Tools-Vibe-blue?style=for-the-badge)]() [![VS Studio](https://img.shields.io/badge/IDE-VS%20Studio-blue?style=for-the-badge)]() [![RooCloud](https://img.shields.io/badge/Cloud-RooCloud-green?style=for-the-badge)]() [![GitHub Copilot](https://img.shields.io/badge/AI-GitHub%20Copilot-black?style=for-the-badge)]() [![Grok Code Fast](https://img.shields.io/badge/AI-Grok%20Code%20Fast-purple?style=for-the-badge)]() [![GPT 5](https://img.shields.io/badge/AI-GPT%205-red?style=for-the-badge)]() [![GPT 5 Mini](https://img.shields.io/badge/AI-GPT%205%20Mini-red?style=for-the-badge)]() [![Claude 4 Sonnet](https://img.shields.io/badge/AI-Claude%204%20Sonnet-orange?style=for-the-badge)]()
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
@@ -10,8 +15,6 @@
 [![OpenRouter](https://img.shields.io/badge/OpenRouter-API-blue.svg)](https://openrouter.ai/)
 
 SlopBot is a Python-based Discord bot that enables creative image manipulation commands, including generating new images from text prompts, editing existing images, and blending multiple images together. Built with modern AI models and optimized for seamless integration into Discord servers.
-
-A pragmatic README for the actual codebase details below.
 
 The bot is a discord.py application that registers slash commands and calls an OpenRouter-backed client to generate/edit/blend images. A small FastAPI/uvicorn health server runs alongside the bot (port 8000).
 
