@@ -24,10 +24,11 @@ async def edit(
     source3=None,
     source4=None,
     mask=None,
-    format: str = "png"
+    format: str = "png",
+    size: Optional[str] = None
 ) -> None:
     """Handle the /edit command to edit images based on prompts."""
-    logger.debug(f"Received /edit command from {interaction.user}: prompt='{prompt}', sources attached, format={format}.")
+    logger.debug(f"Received /edit command from {interaction.user}: prompt='{prompt}', sources attached, format={format}, size={size}.")
 
     # Defer the response
     await interaction.response.defer()
@@ -51,7 +52,7 @@ async def edit(
             await interaction.followup.send("Processing your images... This may take a moment.", ephemeral=True)
 
         # Enqueue for asynchronous processing
-        await image_queue.enqueue_edit(interaction, prompt, sources, mask, format)
+        await image_queue.enqueue_edit(interaction, prompt, sources, mask, format, size)
 
     except ValidationError as e:
         await handle_error(interaction, str(e), category=e.category, include_suggestion=True)

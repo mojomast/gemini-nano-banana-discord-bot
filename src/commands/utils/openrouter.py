@@ -150,7 +150,7 @@ class OpenRouterClient:
                     logger.error(f"Request failed after {config.max_retries + 1} attempts: {e}")
                     raise
 
-    async def generate_image(self, prompt: str, style: Optional[str] = None, count: int = 1, seed: Optional[int] = None, format: str = "png") -> List[GeneratedImage]:
+    async def generate_image(self, prompt: str, style: Optional[str] = None, count: int = 1, seed: Optional[int] = None, format: str = "png", size: Optional[str] = None) -> List[GeneratedImage]:
         """Generate images from text prompt."""
         prompt_to_send = prompt
         if style:
@@ -164,6 +164,15 @@ class OpenRouterClient:
             "temperature": 0.7,
             "format": format,
         }
+        # If a size like '640x640' or '1280x1280' is provided, include width/height
+        if size and isinstance(size, str) and 'x' in size:
+            try:
+                w, h = size.lower().split('x', 1)
+                request_data['width'] = int(w)
+                request_data['height'] = int(h)
+            except Exception:
+                # Ignore malformed size and proceed without width/height
+                pass
         if seed:
             request_data["seed"] = seed
         
@@ -280,7 +289,7 @@ class OpenRouterClient:
         logger.debug(f"Parsed {len(images)} images from API response")
         return images[:count] if images else []
 
-    async def edit_image(self, prompt: str, sources: List[Union[str, Path, Attachment]], mask: Optional[Union[str, Path, Attachment]] = None, format: str = "png") -> List[GeneratedImage]:
+    async def edit_image(self, prompt: str, sources: List[Union[str, Path, Attachment]], mask: Optional[Union[str, Path, Attachment]] = None, format: str = "png", size: Optional[str] = None) -> List[GeneratedImage]:
         """Edit image(s) based on prompt."""
         contents = [ContentItem(type="text", text=prompt)]
         for src in sources:
@@ -296,6 +305,13 @@ class OpenRouterClient:
             "temperature": 0.7,
             "format": format,
         }
+        if size and isinstance(size, str) and 'x' in size:
+            try:
+                w, h = size.lower().split('x', 1)
+                request_data['width'] = int(w)
+                request_data['height'] = int(h)
+            except Exception:
+                pass
         response = await self._make_request_with_retry(request_data)
         # Parse similarly to generate_image
         images = []
@@ -403,7 +419,7 @@ class OpenRouterClient:
         logger.debug(f"Parsed {len(images)} images from edit API response")
         return images
 
-    async def blend_images(self, prompt: str, sources: List[Union[str, Path, Attachment]], strength: float = 0.5, format: str = "png") -> List[GeneratedImage]:
+    async def blend_images(self, prompt: str, sources: List[Union[str, Path, Attachment]], strength: float = 0.5, format: str = "png", size: Optional[str] = None) -> List[GeneratedImage]:
         """Blend multiple images based on prompt."""
         if not 2 <= len(sources) <= 6:
             raise ValueError("Blend requires 2-6 source images.")
@@ -418,6 +434,13 @@ class OpenRouterClient:
             "temperature": 0.7,
             "format": format,
         }
+        if size and isinstance(size, str) and 'x' in size:
+            try:
+                w, h = size.lower().split('x', 1)
+                request_data['width'] = int(w)
+                request_data['height'] = int(h)
+            except Exception:
+                pass
         response = await self._make_request_with_retry(request_data)
         # Parse similarly to generate_image
         images = []

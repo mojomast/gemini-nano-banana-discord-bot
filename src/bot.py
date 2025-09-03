@@ -84,7 +84,8 @@ async def main() -> None:
         style="Optional artistic style (e.g., 'photorealistic', 'anime', 'sketch')",
         count="Number of images to generate (1-4, default 1)",
         seed="Optional seed for reproducible results",
-        format="Output image format (png, jpg, webp, default png)"
+        format="Output image format (png, jpg, webp, default png)",
+        size="Image size (width x height in pixels, default 640x640)"
     )
     @app_commands.choices(
         style=[
@@ -98,12 +99,18 @@ async def main() -> None:
             app_commands.Choice(name="PNG", value="png"),
             app_commands.Choice(name="JPG", value="jpg"),
             app_commands.Choice(name="WebP", value="webp"),
+        ],
+        size=[
+            app_commands.Choice(name="Small (640x640)", value="640x640"),
+            app_commands.Choice(name="Medium (1024x1024)", value="1024x1024"),
+            app_commands.Choice(name="Large (1280x1280)", value="1280x1280"),
+            app_commands.Choice(name="X-Large (1536x1536)", value="1536x1536"),
         ]
     )
     @rate_limited(rate_limiter)
-    async def imagine_command(interaction: discord.Interaction, prompt: str, style: Optional[str] = None, count: int = 1, seed: Optional[int] = None, format: str = "png"):
+    async def imagine_command(interaction: discord.Interaction, prompt: str, style: Optional[str] = None, count: int = 1, seed: Optional[int] = None, format: str = "png", size: str = "640x640"):
         logger.info(f"Imagine command called by {interaction.user} with prompt: {prompt}")
-        await imagine(interaction, prompt, style, count, seed, format)
+        await imagine(interaction, prompt, style, count, seed, format, size)
 
     @app_commands.command(name="edit", description="Edit existing images with prompts")
     @app_commands.describe(
@@ -113,19 +120,29 @@ async def main() -> None:
         source3="Third source image (optional)",
         source4="Fourth source image (optional)",
         mask="Optional mask image for precise editing (attach PNG/JPG/WebP <10MB)",
-        format="Output image format (png, jpg, webp, default png)"
+        format="Output image format (png, jpg, webp, default png)",
+        size="Output image size (width x height in pixels, default keeps original size)"
     )
     @app_commands.choices(
         format=[
             app_commands.Choice(name="PNG", value="png"),
             app_commands.Choice(name="JPG", value="jpg"),
             app_commands.Choice(name="WebP", value="webp"),
+        ],
+        size=[
+            app_commands.Choice(name="Keep Original Size", value="original"),
+            app_commands.Choice(name="Small (640x640)", value="640x640"),
+            app_commands.Choice(name="Medium (1024x1024)", value="1024x1024"),
+            app_commands.Choice(name="Large (1280x1280)", value="1280x1280"),
+            app_commands.Choice(name="X-Large (1536x1536)", value="1536x1536"),
         ]
     )
     @rate_limited(rate_limiter)
-    async def edit_command(interaction: discord.Interaction, prompt: str, source1: discord.Attachment, source2: Optional[discord.Attachment] = None, source3: Optional[discord.Attachment] = None, source4: Optional[discord.Attachment] = None, mask: Optional[discord.Attachment] = None, format: str = "png"):
+    async def edit_command(interaction: discord.Interaction, prompt: str, source1: discord.Attachment, source2: Optional[discord.Attachment] = None, source3: Optional[discord.Attachment] = None, source4: Optional[discord.Attachment] = None, mask: Optional[discord.Attachment] = None, format: str = "png", size: str = "original"):
         logger.info(f"Edit command called by {interaction.user} with prompt: {prompt}")
-        await edit(interaction, prompt, source1, source2, source3, source4, mask, format)
+        # Convert "original" to None for the edit function
+        actual_size = None if size == "original" else size
+        await edit(interaction, prompt, source1, source2, source3, source4, mask, format, actual_size)
 
     @app_commands.command(name="blend", description="Blend multiple images with prompt guidance")
     @app_commands.describe(

@@ -25,7 +25,8 @@ async def imagine(
     style: Optional[str] = None,
     count: int = 1,
     seed: Optional[int] = None,
-    format: str = "png"
+    format: str = "png",
+    size: str = "640x640"
 ) -> None:
     """Handle the /imagine command to generate images from prompts."""
     logger.debug(f"Received /imagine command from {interaction.user}: prompt='{prompt}', style={style}, count={count}, seed={seed}, format={format}")
@@ -62,7 +63,7 @@ async def imagine(
         await validate_count_parameter(interaction, count, 1, 4)
 
         # Enqueue for asynchronous processing
-        await image_queue.enqueue_imagine(interaction, prompt, style, count, seed, format)
+        await image_queue.enqueue_imagine(interaction, prompt, style, count, seed, format, size)
 
     except ValidationError as e:
         await handle_error(interaction, str(e), category=e.category, include_suggestion=True)

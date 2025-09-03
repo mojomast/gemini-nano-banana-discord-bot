@@ -24,6 +24,8 @@ class ImageIterationView(discord.ui.View):
         self.style = style
         self.seed = seed
         self.format = format
+        # size is stored as a string like "640x640"
+        self.size = "640x640"
         # Keep a reference to the generated images (GeneratedImage objects)
         # so buttons (like Edit) can operate on them later.
         self.images = images or []
@@ -39,7 +41,7 @@ class ImageIterationView(discord.ui.View):
             image_processing_queue = AsyncImageQueue()
         
         # Generate with random seed (None will generate random)
-        await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 1, None, self.format)
+        await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 1, None, self.format, self.size)
     
     @discord.ui.button(label='🎯 Variations', style=discord.ButtonStyle.secondary, emoji='🎯')
     async def variations(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -50,8 +52,7 @@ class ImageIterationView(discord.ui.View):
         global image_processing_queue
         if image_processing_queue is None:
             image_processing_queue = AsyncImageQueue()
-        
-        await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 4, None, self.format)
+        await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 4, None, self.format, self.size)
     
     @discord.ui.button(label='🔢 Same Seed', style=discord.ButtonStyle.secondary, emoji='🔢')
     async def same_seed(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -67,7 +68,28 @@ class ImageIterationView(discord.ui.View):
         if image_processing_queue is None:
             image_processing_queue = AsyncImageQueue()
         
-        await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 1, self.seed, self.format)
+        await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 1, self.seed, self.format, self.size)
+
+    @discord.ui.button(label='🔍 Regenerate 1280', style=discord.ButtonStyle.secondary, emoji='🔍')
+    async def regenerate_1280(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Regenerate the image at 1280x1280 while preserving prompt/style/seed."""
+        await interaction.response.defer()
+
+        global image_processing_queue
+        if image_processing_queue is None:
+            image_processing_queue = AsyncImageQueue()
+
+        # If we have generated images available, use the first one as the source
+        # and call the edit/upscale path so we preserve the original image content.
+        if not self.images:
+            # Fallback: request a single image at higher resolution (best-effort)
+            await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 1, self.seed, self.format, "1280x1280")
+            return
+
+        # Use the first generated image as the source for upscaling
+        source_image = self.images[0]
+        # Enqueue an edit which will call the edit/upscale API with the provided source
+        await image_processing_queue.enqueue_edit(interaction, self.prompt, [source_image], None, self.format, size="1280x1280")
 
     @discord.ui.button(label='✏️ Edit', style=discord.ButtonStyle.primary, emoji='✏️')
     async def edit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -78,12 +100,12 @@ class ImageIterationView(discord.ui.View):
             return
 
         # Define a modal to collect the edit prompt and optional image index
-        class EditModal(discord.ui.Modal, title="Edit generated image"):
+        class EditModal(discord.ui.Modal):
             prompt = discord.ui.TextInput(label="Edit prompt", style=discord.TextStyle.long, placeholder="Describe the edits to make...", required=True, max_length=1000)
             index = discord.ui.TextInput(label="Image index (1 for first)", style=discord.TextStyle.short, placeholder="1", required=False, max_length=2)
 
             def __init__(self, parent_view: ImageIterationView):
-                super().__init__()
+                super().__init__(title="Edit generated image")
                 self.parent_view = parent_view
 
             async def on_submit(self, modal_interaction: discord.Interaction):
@@ -158,12 +180,12 @@ class AsyncImageQueue:
             finally:
                 self.queue.task_done()
 
-    async def enqueue_imagine(self, interaction: discord.Interaction[Any], prompt: str, style: Optional[str] = None, count: int = 1, seed: Optional[int] = None, format: str = "png"):
-        await self.queue.put(QueueItem(interaction, 'imagine', {'prompt': prompt, 'style': style, 'count': count, 'seed': seed, 'format': format}))
+    async def enqueue_imagine(self, interaction: discord.Interaction[Any], prompt: str, style: Optional[str] = None, count: int = 1, seed: Optional[int] = None, format: str = "png", size: str = "640x640"):
+        await self.queue.put(QueueItem(interaction, 'imagine', {'prompt': prompt, 'style': style, 'count': count, 'seed': seed, 'format': format, 'size': size}))
         logger.debug(f"Enqueued imagine request for user {interaction.user}")
 
-    async def enqueue_edit(self, interaction: discord.Interaction[Any], prompt: str, sources: list, mask: Optional[discord.Attachment] = None, format: str = "png"):
-        await self.queue.put(QueueItem(interaction, 'edit', {'prompt': prompt, 'sources': sources, 'mask': mask, 'format': format}))
+    async def enqueue_edit(self, interaction: discord.Interaction[Any], prompt: str, sources: list, mask: Optional[discord.Attachment] = None, format: str = "png", size: Optional[str] = None):
+        await self.queue.put(QueueItem(interaction, 'edit', {'prompt': prompt, 'sources': sources, 'mask': mask, 'format': format, 'size': size}))
         logger.debug(f"Enqueued edit request for user {interaction.user}")
 
     async def enqueue_blend(self, interaction: discord.Interaction[Any], prompt: str, sources: list, strength: float = 0.5, format: str = "png"):
@@ -178,6 +200,7 @@ class AsyncImageQueue:
         count = params['count']
         seed = params['seed']
         format = params.get('format', 'png')
+        size = params.get('size', '640x640')
 
         # Single progress message starting with queued
         embed = discord.Embed(
@@ -200,7 +223,7 @@ class AsyncImageQueue:
             embed.description = f"✅ Queued → ✅ Processing → 🎨 Generating → 🔧 Finalizing\n\n**Prompt:** {prompt[:100]}{'...' if len(prompt) > 100 else ''}"
             await progress_msg.edit(embed=embed)
 
-            images = await self.client.generate_image(prompt=prompt, style=style, count=count, seed=seed, format=format)
+            images = await self.client.generate_image(prompt=prompt, style=style, count=count, seed=seed, format=format, size=size)
 
             if not images:
                 await handle_error(interaction, "Failed to generate images.", category=ErrorCategory.API)
@@ -221,7 +244,7 @@ class AsyncImageQueue:
             embed.description = (
                 f"✅ Queued → ✅ Processing → ✅ Generating → ✅ Finalizing\n\n"
                 f"**Complete!** Generated {len(files)} image{'s' if len(files) > 1 else ''}\n\n"
-                f"**Prompt:** {prompt}"
+                f"**Prompt:** {prompt}\n**Size:** {size}"
             )
             embed.color = 0x00ff00
 
@@ -241,8 +264,9 @@ class AsyncImageQueue:
         interaction = item.interaction
         prompt = params['prompt']
         sources = params['sources']
-        mask = params['mask']
+        mask = params.get('mask')
         format = params.get('format', 'png')
+        size = params.get('size', None)
 
         # Single progress message starting with queued
         embed = discord.Embed(
@@ -360,7 +384,8 @@ class AsyncImageQueue:
                 prompt=prompt,
                 sources=[item.get('url', item.get('data')) for item in prepared_sources],
                 mask=prepared_mask.get('url', prepared_mask.get('data')) if prepared_mask else None,
-                format=format
+                format=format,
+                size=size
             )
 
             if not edited_images:
