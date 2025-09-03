@@ -1,0 +1,41 @@
+# Cache directories
+.cache
+__pycache__/
+*.pyc
+
+# Git
+.git
+.gitignore
+
+# Documentation
+docs/
+README.md
+CHANGELOG.md
+DEPLOYMENT.md
+DEVLOG.md
+CONTRIBUTING.md
+SECURITY.md
+SELF_HOSTING.md
+CONFIG.md
+
+# Tests
+tests/
+
+# Environment files
+.env
+
+# Logs
+*.log
+
+# Development files
+.vscode/
+.pre-commit-config.yaml
+pyrightconfig.json
+
+# Images directory (generated images)
+images/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
