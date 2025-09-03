@@ -1,9 +1,8 @@
 # gemini-nano-banana-discord-bot
-# gemini-nano-banana-discord-bot
 
 ![RooCode Badge](./images/RooCode-Badge-blk.webp)
 
-Vibe coded with RooCode.
+Vibe coded with [RooCode.](https://github.com/RooCodeInc/Roo-Code/)
 
 ## 🛠️ Development Tools & AI Integrations
 
