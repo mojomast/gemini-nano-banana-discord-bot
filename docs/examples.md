@@ -17,8 +17,14 @@ The `/imagine` command generates images based on text prompts using AI models.
 
 **Syntax:**
 ```
-/imagine prompt:<your-description-here> [style:<style-name>] [quality:<1-10>]
+/imagine prompt:<your-description-here> [style:<style-name>] [count:<1-4>] [size:<resolution>] [format:<png|jpg|webp>]
 ```
+
+**New Size Options:**
+- `size:Small (640x640)` - Fast generation, smaller file size
+- `size:Medium (1024x1024)` - Balanced quality and speed (default)
+- `size:Large (1280x1280)` - Higher quality, slower generation
+- `size:X-Large (1536x1536)` - Maximum quality, slowest generation
 
 **Example 1: Simple Prompt**
 ```
@@ -29,17 +35,24 @@ This command will generate an image of a futuristic city with buildings and suns
 
 **Example 2: Styled Image**
 ```
-/imagine prompt:a portrait of a cat in watercolor style quality:9
+/imagine prompt:a portrait of a cat in watercolor style count:2 format:png
 ```
 
-Generates a high-quality watercolor-style cat portrait.
+Generates watercolor-style cat portraits.
 
-**Example 3: Collaborative Creation**
+**Example 3: High-Resolution Image**
 ```
-/imagine prompt:an astronaut riding a horse on Mars
+/imagine prompt:an astronaut riding a horse on Mars size:X-Large (1536x1536)
 ```
 
-Creates imaginative scenes combining real and fictional elements.
+Creates imaginative scenes at maximum resolution for detailed output.
+
+**Example 4: Quick Small Image**
+```
+/imagine prompt:a simple logo design size:Small (640x640) format:png
+```
+
+Generates smaller images quickly for logos or icons.
 
 **Command Output Example:**
 ```
@@ -117,8 +130,15 @@ Edit existing images by describing changes you want to make.
 
 **Syntax:**
 ```
-/edit image:<url-or-attachment> prompt:<describe-changes> [strength:0.5]
+/edit source1:<attachment> prompt:<describe-changes> [size:<resolution>] [format:<png|jpg|webp>]
 ```
+
+**Size Options for /edit:**
+- `size:Keep Original Size` - Maintains the input image dimensions (default)
+- `size:Small (640x640)` - Resize output to 640x640
+- `size:Medium (1024x1024)` - Resize output to 1024x1024  
+- `size:Large (1280x1280)` - Resize output to 1280x1280
+- `size:X-Large (1536x1536)` - Resize output to 1536x1536
 
 **Example 1: Object Addition**
 ```

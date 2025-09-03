@@ -59,8 +59,10 @@ Slash command syncing
 
 Commands (what's wired)
 
-- /imagine — text → image generation. Arguments: prompt, style, count, seed, format. Uses `src/commands/imagine.py`.
+- /imagine — text → image generation. Arguments: prompt, style, count, seed, format, size. Uses `src/commands/imagine.py`.
+  - **size** parameter added: Choose from Small (640x640), Medium (1024x1024), Large (1280x1280), or X-Large (1536x1536)
 - /edit — edit existing images. Requires at least one image attachment (source1). Uses `src/commands/edit.py`.
+  - **size** parameter added: Choose from Keep Original Size, Small (640x640), Medium (1024x1024), Large (1280x1280), or X-Large (1536x1536)
 - /blend — blend 2-6 images together. Uses `src/commands/blend.py`.
 - /help, /info — basic helpers.
 
@@ -70,6 +72,7 @@ Important runtime behaviors observed in the code
 - The OpenRouter client raises if `OPENROUTER_API_KEY` is missing (check `src/commands/utils/openrouter.py`).
 - Health server: uvicorn is launched inside the same process; container exposes port 8000 for health checks.
 - Cache: `src/commands/utils/storage.py` uses `CACHE_DIR` (default `.cache`) and will create the directory if missing.
+- **Image Size Limitations**: Some AI models (like Google Gemini) may ignore size parameters and default to their preferred resolution (e.g., 1024x1024). The size parameter is sent to the API but final output depends on model capabilities.
 
 Troubleshooting (quick)
 

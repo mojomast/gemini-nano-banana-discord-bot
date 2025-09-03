@@ -8,10 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Image Size Selection**: Added `size` parameter to `/imagine` and `/edit` commands
+  - `/imagine` now supports: Small (640x640), Medium (1024x1024), Large (1280x1280), X-Large (1536x1536)
+  - `/edit` now supports: Keep Original Size, Small (640x640), Medium (1024x1024), Large (1280x1280), X-Large (1536x1536)
+  - Size parameters are exposed as dropdown choices in Discord slash command interface
 - Work in progress features will be listed here
 
 ### Changed
-- Modifications to existing functionality
+- Modified Discord slash command definitions to include size parameter selection
+- Updated `imagine()` and `edit()` functions to accept and process size parameters
+- Enhanced OpenRouter API integration to properly handle width/height parameters
+
+### Fixed
+- Fixed indentation error in `queue.py` that was preventing container startup
+
+### Known Issues
+- Some AI models (particularly Google Gemini) may ignore size parameters and default to their preferred resolution (e.g., 1024x1024)
+- Size parameter is properly sent to API but final output depends on individual model capabilities
 
 ### Deprecated
 - Features scheduled for removal
