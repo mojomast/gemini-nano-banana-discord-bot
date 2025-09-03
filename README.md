@@ -14,7 +14,7 @@ Vibe coded with RooCode.
 [![Discord.py](https://img.shields.io/badge/discord.py-2.3.2-blue.svg)](https://discordpy.readthedocs.io/)
 [![OpenRouter](https://img.shields.io/badge/OpenRouter-API-blue.svg)](https://openrouter.ai/)
 
-SlopBot is a Python-based Discord bot that enables creative image manipulation commands, including generating new images from text prompts, editing existing images, and blending multiple images together. Built with modern AI models and optimized for seamless integration into Discord servers.
+gemini-nano-banana-discord-bot is a Python-based Discord bot that enables creative image manipulation commands, including generating new images from text prompts, editing existing images, and blending multiple images together. Built with modern AI models and optimized for seamless integration into Discord servers.
 
 The bot is a discord.py application that registers slash commands and calls an OpenRouter-backed client to generate/edit/blend images. A small FastAPI/uvicorn health server runs alongside the bot (port 8000).
 
@@ -37,12 +37,12 @@ With Docker (recommended for quick self-hosting):
 2. Start the container (PowerShell):
 
 docker compose up --build -d
-```
+``` 
 
 3. Inspect logs:
 
 docker compose logs -f
-```
+``` 
 
 Notes:
 
@@ -88,7 +88,7 @@ Tests and development
 
 [Back to top](#slop-bot)
 
-Slop Bot offers a comprehensive suite of image manipulation tools:
+gemini-nano-banana-discord-bot offers a comprehensive suite of image manipulation tools:
 
 - **AI Image Generation**: Create original images from text descriptions using state-of-the-art models
 - **Image Editing**: Modify existing images with natural language prompts
@@ -107,7 +107,7 @@ Google Gemini 2.5 Flash Image Preview - via OpenRouter
 
 ### 1. Invite the Bot
 
-To add Slop Bot to your Discord server, you'll need to create an invite link from the Discord Developer Portal:
+To add gemini-nano-banana-discord-bot to your Discord server, you'll need to create an invite link from the Discord Developer Portal:
 
 1. Go to https://discord.com/developers/applications
 2. Select your bot application
@@ -462,7 +462,7 @@ If you want the Edit modal to pre-fill the original generation prompt or to surf
 #### Getting Help
 
 **Quick Self-Help:**
-1. Run `/info topic:status` - Check system health
+1. Run `/info topic:status` - Bot health and queue
 2. Run `/help` - Verify commands are available
 3. Try in DM with bot - Test one-on-one
 4. Clear browser cache if using web client
@@ -738,6 +738,6 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 
 ---
 
-*Made with ❤️ by the Slop Bot community*
+*Made with ❤️ by the gemini-nano-banana-discord-bot community*
 
 [⬆ Back to top](#slop-bot)

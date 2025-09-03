@@ -117,8 +117,8 @@ dmypy.json
 .vscode/
 
 # Images generated
-images/
-# keep images directory ignored but track the RooCode badge specifically
+# ignore all files in images but allow the RooCode badge
+images/*
 !images/roocode-badge-blk.webp
 README_old.md
 .DS_Store
