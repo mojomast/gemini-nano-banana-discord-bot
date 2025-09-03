@@ -1,5 +1,5 @@
 """
-Centralized configuration management for SlopBot.
+Centralized configuration management for gemini-nano-banana-discord-bot.
 
 This module loads environment variables into a structured configuration object.
 All application settings are defined here with defaults.
@@ -44,8 +44,8 @@ class Config:
         self.openrouter_api_key = self._get_required_env('OPENROUTER_API_KEY')
         self.openrouter_base_url = os.getenv('OPENROUTER_BASE_URL', 'https://openrouter.ai/api/v1')
         self.model_id = os.getenv('MODEL_ID', 'google/gemini-2.5-flash-image-preview')
-        self.referer = "https://github.com/kyle/slopbot"
-        self.title = "Slop Bot"
+        self.referer = "https://github.com/mojomast/gemini-nano-banana-discord-bot"
+        self.title = "gemini-nano-banana-discord-bot"
         self.log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
         self.max_retries = int(os.getenv('MAX_RETRIES', '3'))
         self.timeout = int(os.getenv('TIMEOUT', '60'))

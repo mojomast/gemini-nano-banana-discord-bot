@@ -113,8 +113,8 @@ pip --version
 #### Clone and Setup Project
 ```powershell
 # Clone repository
-git clone https://github.com/your-username/slopbot.git
-cd slopbot
+git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+cd gemini-nano-banana-discord-bot
 
 # Create virtual environment
 python -m venv venv
@@ -139,8 +139,8 @@ pip3 --version
 #### Setup Project
 ```bash
 # Clone repository
-git clone https://github.com/your-username/slopbot.git
-cd slopbot
+git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+cd gemini-nano-banana-discord-bot
 
 # Create virtual environment
 python3 -m venv venv
@@ -177,8 +177,8 @@ sudo yum install python3 python3-pip
 #### Setup Project
 ```bash
 # Clone repository
-git clone https://github.com/your-username/slopbot.git
-cd slopbot
+git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+cd gemini-nano-banana-discord-bot
 
 # Create virtual environment
 python3 -m venv venv
@@ -272,8 +272,8 @@ tail -f bot.log
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/slopbot.git
-cd slopbot
+git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+cd gemini-nano-banana-discord-bot
 
 # Copy example environment file
 cp .env.example .env
@@ -289,10 +289,10 @@ docker-compose up --build
 
 ```bash
 # Build development image
-docker build -t slopbot:dev -f Dockerfile.dev .
+docker build -t gemini-nano-banana-discord-bot:dev -f Dockerfile.dev .
 
 # Run with volume mounting for live reload
-docker run -v $(pwd):/app slopbot:dev
+docker run -v $(pwd):/app gemini-nano-banana-discord-bot:dev
 ```
 
 ### Production Docker Deployment

@@ -4,7 +4,7 @@ FROM python:3.11-alpine
 # Metadata labels for production
 LABEL maintainer="your.name@example.com"
 LABEL version="0.1.0"
-LABEL description="Discord bot for slop-bot"
+LABEL description="Discord bot for gemini-nano-banana-discord-bot"
 
 # Set working directory
 WORKDIR /app

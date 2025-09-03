@@ -1,5 +1,5 @@
 """
-Local storage and caching utilities module for slopbot.
+Local storage and caching utilities module for gemini-nano-banana-discord-bot.
 
 This module provides functions for managing a cache directory to store temporary files,
 such as fetched attachments and generated images. All cached data is stored in temp files

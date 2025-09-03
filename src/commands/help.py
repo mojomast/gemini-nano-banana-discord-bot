@@ -14,7 +14,7 @@ async def help(interaction) -> None:
     logger.debug(f"Received /help command from {interaction.user}")
 
     embed = discord.Embed(
-        title="🤖 SlopBot Help",
+    title="🤖 gemini-nano-banana-discord-bot Help",
         description="Here's a list of available commands and how to use them:",
         color=0x3498db
     )
@@ -50,6 +50,6 @@ async def help(interaction) -> None:
         inline=False
     )
 
-    embed.set_footer(text="SlopBot | Powered by OpenRouter and Gemini")
+    embed.set_footer(text="gemini-nano-banana-discord-bot | Powered by OpenRouter and Gemini")
 
     await interaction.response.send_message(embed=embed, ephemeral=True)

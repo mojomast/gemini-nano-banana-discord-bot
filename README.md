@@ -1,4 +1,4 @@
-<!-- filepath: c:\Users\kyle\projects\slopbot\README.md -->
+# gemini-nano-banana-discord-bot
 # gemini-nano-banana-discord-bot
 
 ![RooCode Badge](./images/RooCode-Badge-blk.webp)
@@ -85,7 +85,7 @@ Tests and development
 
 - Tests: there is a `tests/` folder. Run `pytest` after installing dev dependencies (see `pyproject.toml`).
 - Linting / typing: project includes `pyrightconfig.json` and recommends standard tools but they are not enforced by the runtime.
-
+[Back to top](#gemini-nano-banana-discord-bot)
 [Back to top](#slop-bot)
 
 gemini-nano-banana-discord-bot offers a comprehensive suite of image manipulation tools:
@@ -739,5 +739,5 @@ See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
 ---
 
 *Made with ❤️ by the gemini-nano-banana-discord-bot community*
-
+[⬆ Back to top](#gemini-nano-banana-discord-bot)
 [⬆ Back to top](#slop-bot)

@@ -21,7 +21,7 @@ async def info(interaction) -> None:
 
     embed = discord.Embed(
         title="🔍 Bot Information",
-        description="Details about this SlopBot instance:",
+        description="Details about this gemini-nano-banana-discord-bot instance:",
         color=0x2ecc71
     )
 
@@ -55,6 +55,6 @@ async def info(interaction) -> None:
         inline=False
     )
 
-    embed.set_footer(text=f"SlopBot {VERSION} | Built with discord.py")
+    embed.set_footer(text=f"gemini-nano-banana-discord-bot {VERSION} | Built with discord.py")
 
     await interaction.response.send_message(embed=embed, ephemeral=True)

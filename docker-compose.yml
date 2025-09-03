@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  slop-bot:
+  gemini-nano-banana-discord-bot:
     build: .
     env_file:
       - .env

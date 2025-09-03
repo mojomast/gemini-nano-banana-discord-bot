@@ -40,8 +40,8 @@ This project follows a code of conduct to ensure a welcoming environment for all
 
 2. **Clone your fork:**
    ```bash
-   git clone https://github.com/your-username/slopbot.git
-   cd slopbot
+    git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+    cd gemini-nano-banana-discord-bot
    ```
 
 3. **Set up Python environment:**
@@ -710,4 +710,4 @@ Please include:
 
 Thank you for contributing to Slop Bot! Your contributions help make the project better for everyone.
 
-[⬆ Back to top](#contributing-to-slop-bot)
+[⬆ Back to top](#contributing-to-gemini-nano-banana-discord-bot)

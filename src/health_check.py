@@ -1,5 +1,5 @@
 """
-Health Check Module for SlopBot
+Health Check Module for gemini-nano-banana-discord-bot
 
 This module provides a FastAPI application for health monitoring and metrics.
 It exposes endpoints for health checks and metrics on port 8000.
@@ -50,8 +50,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI app
 app = FastAPI(
-    title="SlopBot Health Check API",
-    description="Health monitoring and metrics for SlopBot",
+    title="gemini-nano-banana-discord-bot Health Check API",
+    description="Health monitoring and metrics for gemini-nano-banana-discord-bot",
     version="1.0.0",
     lifespan=lifespan,
 )

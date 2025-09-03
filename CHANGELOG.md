@@ -141,10 +141,10 @@ This project follows SemVer:
 
 ---
 
-[Unreleased]: https://github.com/your-org/slopbot/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/your-org/slopbot/releases/tag/v0.1.0
+[Unreleased]: https://github.com/mojomast/gemini-nano-banana-discord-bot/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/mojomast/gemini-nano-banana-discord-bot/releases/tag/v0.1.0
 
-For full commit history, see the [commits page](https://github.com/your-org/slopbot/commits/main).
+For full commit history, see the [commits page](https://github.com/mojomast/gemini-nano-banana-discord-bot/commits/main).
 
 ## Contributing to Future Releases
 

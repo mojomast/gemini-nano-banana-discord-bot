@@ -19,8 +19,8 @@ For the fastest deployment, use Docker Compose:
 
 ```bash
 # Clone repository
-git clone https://github.com/your-username/slopbot.git
-cd slopbot
+git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+cd gemini-nano-banana-discord-bot
 
 # Create environment file
 cp .env.example .env
@@ -30,7 +30,7 @@ cp .env.example .env
 docker-compose up -d --build
 
 # Monitor logs
-docker-compose logs -f slopbot
+docker-compose logs -f gemini-nano-banana-discord-bot
 ```
 
 ## Docker Compose Deployment
@@ -50,7 +50,7 @@ Create or modify `docker-compose.yml`:
 version: '3.8'
 
 services:
-  slopbot:
+  gemini-nano-banana-discord-bot:
     build: .
     container_name: slopbot
     restart: unless-stopped
@@ -157,8 +157,8 @@ For direct Linux system daemon deployment:
 1. **Clone and setup:**
    ```bash
    cd /opt
-   git clone https://github.com/your-username/slopbot.git
-   cd slopbot
+  git clone https://github.com/mojomast/gemini-nano-banana-discord-bot.git
+  cd gemini-nano-banana-discord-bot
    python3 -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
