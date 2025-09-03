@@ -118,6 +118,8 @@ dmypy.json
 
 # Images generated
 images/
+# keep images directory ignored but track the RooCode badge specifically
+!images/roocode-badge-blk.webp
 README_old.md
 .DS_Store
 docker_logs.txt
