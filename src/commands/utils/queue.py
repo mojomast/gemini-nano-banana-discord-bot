@@ -156,10 +156,14 @@ class AsyncImageQueue:
                 await handle_error(interaction, "Failed to process images.", category=ErrorCategory.PROCESSING)
                 return
 
-            # Complete progress
-            embed.description = f"✅ Queued → ✅ Processing → ✅ Generating → ✅ Finalizing\n\n**Complete!** Generated {len(files)} image{'s' if len(files) > 1 else ''}"
+            # Complete progress — include the full prompt in the embed so it's visible
+            embed.description = (
+                f"✅ Queued → ✅ Processing → ✅ Generating → ✅ Finalizing\n\n"
+                f"**Complete!** Generated {len(files)} image{'s' if len(files) > 1 else ''}\n\n"
+                f"**Prompt:** {prompt}"
+            )
             embed.color = 0x00ff00
-            
+
             # Add iteration buttons
             view = ImageIterationView(prompt, style, seed, format)
             await progress_msg.edit(embed=embed, view=view)
