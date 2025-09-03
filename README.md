@@ -375,6 +375,43 @@ A: Use the ❌ reaction on the bot's message to cancel. Note that credits may st
 
 #### Common Errors & Solutions
 
+
+## Recent changes (Edit-button and iteration improvements)
+
+The following updates were made to improve the image editing UX and iteration flow. These changes add an Edit button to generation completion embeds and enable iterating on edited images as well.
+
+Files changed
+- `src/commands/utils/queue.py`
+   - Added `ImageIterationView` support for an "✏️ Edit" button and modal.
+   - Attached the iteration view (Reroll / Variations / Same Seed / Edit) to both `/imagine` and `/edit` completion embeds.
+   - When `/edit` completes, edited images are written to `CACHE_DIR` as temp files and new `discord.File` objects are created from disk before sending. This avoids empty/consumed file-like objects.
+   - The Edit modal can accept an image index to choose which generated/edited image to re-edit. It also accepts saved local file paths (so re-edits of generated outputs work reliably).
+
+- `src/commands/utils/openrouter.py`
+   - No functional changes were required, but it was used by the queue changes to parse/return `GeneratedImage` objects that the queue now consumes.
+
+Behavior changes
+- A new "✏️ Edit" button appears alongside iteration buttons on generation embeds. Clicking it opens a modal to enter an edit prompt and optional image index.
+- The edit prompt is displayed inside the edit progress embed (no duplicate prompt text is sent as a separate message).
+- Edited images are saved to `CACHE_DIR` and the iteration buttons reference those saved files so you can reroll, vary, or re-edit edited images.
+
+How this fixes a common failure
+- Previously, when the code attempted to re-use in-memory `BytesIO` or `discord.File` objects that had been consumed (read/seeking issues), Discord would show a broken attachment (placeholder). Writing image bytes to temp files and creating fresh `discord.File` objects prevents that problem.
+
+How to test these changes
+1. Start the bot and try `/imagine` to generate an image.
+2. Click the "✏️ Edit" button on the generate progress embed and submit an edit prompt in the modal.
+3. When edit completes, confirm:
+    - The edit progress embed shows the full `**Prompt:**` text.
+    - The iteration buttons are visible on the embed.
+    - Clicking Reroll/Variations/Same Seed/✏️ Edit works for the edited output.
+
+Troubleshooting tips
+- If you see an empty or broken image after editing, check the bot logs for messages about failing to write temp files or file-not-found warnings.
+- Ensure `CACHE_DIR` (default `.cache`) is writable by the process and not cleared between generation and edit steps.
+- If iteration still fails, paste the `docker compose logs --tail 200` output and I will inspect the stack trace.
+
+If you want the Edit modal to pre-fill the original generation prompt or to surface the seed/style metadata in the modal, I can add that in a follow-up change.
 **🔧 Bot Not Responding**
 - Check if bot has "Send Messages" and "Attach Files" permissions in server settings
 - Verify bot is online by running `/info topic:status`

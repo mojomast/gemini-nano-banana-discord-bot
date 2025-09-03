@@ -1,10 +1,15 @@
 import asyncio
 from dataclasses import dataclass
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import discord
+import os
+import uuid
+import base64
+from io import BytesIO
+import requests
 from src.commands.utils.logging import setup_logger
 from src.commands.utils.openrouter import OpenRouterClient
-from src.commands.utils.images import fetch_and_validate_attachments, prepare_image_for_api, process_image_sources
+from src.commands.utils.images import fetch_and_validate_attachments, prepare_image_for_api, process_image_sources, CACHE_DIR
 from src.commands.utils.error_handler import handle_error, ErrorCategory
 from src.commands.utils.validators import validate_prompt, validate_count_parameter, validate_strength_parameter, ValidationError
 
@@ -13,12 +18,15 @@ logger = setup_logger(__name__)
 class ImageIterationView(discord.ui.View):
     """View with buttons for image iteration options."""
     
-    def __init__(self, prompt: str, style: Optional[str], seed: Optional[int], format: str):
+    def __init__(self, prompt: str, style: Optional[str], seed: Optional[int], format: str, images: Optional[List[Any]] = None):
         super().__init__(timeout=300)  # 5 minute timeout
         self.prompt = prompt
         self.style = style
         self.seed = seed
         self.format = format
+        # Keep a reference to the generated images (GeneratedImage objects)
+        # so buttons (like Edit) can operate on them later.
+        self.images = images or []
     
     @discord.ui.button(label='🔄 Reroll', style=discord.ButtonStyle.secondary, emoji='🔄')
     async def reroll(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -60,6 +68,59 @@ class ImageIterationView(discord.ui.View):
             image_processing_queue = AsyncImageQueue()
         
         await image_processing_queue.enqueue_imagine(interaction, self.prompt, self.style, 1, self.seed, self.format)
+
+    @discord.ui.button(label='✏️ Edit', style=discord.ButtonStyle.primary, emoji='✏️')
+    async def edit_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Prompt the user for an edit prompt and enqueue an edit using the generated image(s)."""
+        # If no generated images are present, inform the user
+        if not self.images:
+            await interaction.response.send_message("No generated images available to edit.", ephemeral=True)
+            return
+
+        # Define a modal to collect the edit prompt and optional image index
+        class EditModal(discord.ui.Modal, title="Edit generated image"):
+            prompt = discord.ui.TextInput(label="Edit prompt", style=discord.TextStyle.long, placeholder="Describe the edits to make...", required=True, max_length=1000)
+            index = discord.ui.TextInput(label="Image index (1 for first)", style=discord.TextStyle.short, placeholder="1", required=False, max_length=2)
+
+            def __init__(self, parent_view: ImageIterationView):
+                super().__init__()
+                self.parent_view = parent_view
+
+            async def on_submit(self, modal_interaction: discord.Interaction):
+                prompt_value = self.prompt.value.strip()
+                idx = 0
+                if self.index.value and self.index.value.strip():
+                    try:
+                        idx = int(self.index.value.strip()) - 1
+                    except Exception:
+                        await modal_interaction.response.send_message("Invalid image index. Use a number like 1.", ephemeral=True)
+                        return
+
+                if idx < 0 or idx >= len(self.parent_view.images):
+                    await modal_interaction.response.send_message(f"Image index out of range. Choose 1-{len(self.parent_view.images)}.", ephemeral=True)
+                    return
+
+                selected_image = self.parent_view.images[idx]
+
+                # If the view holds a local file path (string), pass that path directly as source
+                if isinstance(selected_image, str):
+                    source_to_use = selected_image
+                else:
+                    source_to_use = selected_image
+
+                # Acknowledge and enqueue edit using the selected generated image
+                await modal_interaction.response.defer()
+                global image_processing_queue
+                if image_processing_queue is None:
+                    image_processing_queue = AsyncImageQueue()
+
+                # Enqueue edit with the appropriate source (GeneratedImage or local path string)
+                await image_processing_queue.enqueue_edit(modal_interaction, prompt_value, [source_to_use], None, self.parent_view.format)
+
+                await modal_interaction.followup.send(f"Enqueued edit for image {idx+1}.", ephemeral=True)
+
+        # Show the modal to the user
+        await interaction.response.send_modal(EditModal(self))
 
 # Global queue instance
 image_processing_queue = None
@@ -164,8 +225,8 @@ class AsyncImageQueue:
             )
             embed.color = 0x00ff00
 
-            # Add iteration buttons
-            view = ImageIterationView(prompt, style, seed, format)
+            # Add iteration buttons and include generated images so buttons can reference them
+            view = ImageIterationView(prompt, style, seed, format, images=images[:count])
             await progress_msg.edit(embed=embed, view=view)
 
             # Send just the image files without additional embed
@@ -198,11 +259,89 @@ class AsyncImageQueue:
             embed.description = f"✅ Queued → 🔄 Processing → 🎨 Editing → 🔧 Finalizing\n\n**Prompt:** {prompt[:100]}{'...' if len(prompt) > 100 else ''}"
             await progress_msg.edit(embed=embed)
 
-            # Fetch and validate attachments
-            all_attachments = sources[::] if not mask else sources + [mask]
-            validated_paths = fetch_and_validate_attachments(all_attachments)
-            if not validated_paths or len(validated_paths) < len(sources):
-                raise ValidationError("Some attachments could not be validated. Ensure all are valid PNG/JPG/WebP images <10MB.", category="validation")
+            # If sources are GeneratedImage objects (from our own generation) or discord.File objects,
+            # write them to temp files in CACHE_DIR so the existing pipeline can process them.
+            validated_paths = []
+            try:
+                # Quick heuristic: if the first source has attributes like 'base64' or 'url', treat as GeneratedImage
+                first_src = sources[0] if sources else None
+            except Exception:
+                first_src = None
+
+            from pathlib import Path as _Path
+            if first_src is not None and (isinstance(first_src, (str, _Path)) or hasattr(first_src, 'base64') or hasattr(first_src, 'url') or isinstance(first_src, discord.File)):
+                # Convert in-memory/generated images to temp files
+                for i, src in enumerate(sources):
+                    temp_path = os.path.join(CACHE_DIR, f"gen_{uuid.uuid4()}_{i}.{format}")
+                    try:
+                        # If already a local file path, just reuse it
+                        if isinstance(src, (str, _Path)):
+                            # validate file exists
+                            if os.path.exists(str(src)):
+                                validated_paths.append(str(src))
+                                continue
+                            else:
+                                raise Exception(f"Local source path not found: {src}")
+
+                        if isinstance(src, discord.File):
+                            # discord.File.fp is a file-like object
+                            try:
+                                src.fp.seek(0)
+                            except Exception:
+                                pass
+                            data = src.fp.read()
+                            with open(temp_path, 'wb') as f:
+                                f.write(data)
+                            validated_paths.append(temp_path)
+                        else:
+                            # GeneratedImage-like handling
+                            if getattr(src, 'base64', None):
+                                b64 = src.base64
+                                if b64.startswith('data:'):
+                                    _, b64 = b64.split(',', 1)
+                                b64 = b64.strip()
+                                missing_padding = len(b64) % 4
+                                if missing_padding:
+                                    b64 += '=' * (4 - missing_padding)
+                                data = base64.b64decode(b64)
+                                with open(temp_path, 'wb') as f:
+                                    f.write(data)
+                                validated_paths.append(temp_path)
+                            elif getattr(src, 'url', None):
+                                if src.url.startswith('data:'):
+                                    _, encoded = src.url.split(',', 1)
+                                    encoded = encoded.strip()
+                                    missing_padding = len(encoded) % 4
+                                    if missing_padding:
+                                        encoded += '=' * (4 - missing_padding)
+                                    data = base64.b64decode(encoded)
+                                else:
+                                    resp = requests.get(src.url, stream=True, timeout=10)
+                                    resp.raise_for_status()
+                                    data = resp.content
+                                with open(temp_path, 'wb') as f:
+                                    f.write(data)
+                                validated_paths.append(temp_path)
+                            else:
+                                # Unknown type; skip
+                                logger.warning(f"Unknown generated source type: {type(src)}")
+                    except Exception as e:
+                        logger.error(f"Failed to convert generated source to temp file: {e}")
+                        # Clean up any partial file
+                        try:
+                            if os.path.exists(temp_path):
+                                os.unlink(temp_path)
+                        except Exception:
+                            pass
+
+                if not validated_paths or len(validated_paths) < len(sources):
+                    raise ValidationError("Some generated sources could not be processed for editing.", category="validation")
+            else:
+                # Fallback: treat sources as regular message attachments and validate/download them
+                all_attachments = sources[::] if not mask else sources + [mask]
+                validated_paths = fetch_and_validate_attachments(all_attachments)
+                if not validated_paths or len(validated_paths) < len(sources):
+                    raise ValidationError("Some attachments could not be validated. Ensure all are valid PNG/JPG/WebP images <10MB.", category="validation")
 
             # Separate sources and mask
             source_paths = validated_paths[:len(sources)]
@@ -239,18 +378,65 @@ class AsyncImageQueue:
             logger.debug(f"Successfully processed {len(files)} files")
 
             if files:
-                # Complete progress
-                embed.description = f"✅ Queued → ✅ Processing → ✅ Editing → ✅ Finalizing\n\n**Complete!** Edited {len(files)} image{'s' if len(files) > 1 else ''}"
+                # Complete progress — include the full prompt in the embed so it's visible
+                embed.description = (
+                    f"✅ Queued → ✅ Processing → ✅ Editing → ✅ Finalizing\n\n"
+                    f"**Complete!** Edited {len(files)} image{'s' if len(files) > 1 else ''}\n\n"
+                    f"**Prompt:** {prompt}"
+                )
                 embed.color = 0x00ff00
-                await progress_msg.edit(embed=embed)
 
-                # Send the image file with the prompt as content
-                await interaction.followup.send(content=f"**Prompt:** {prompt}", files=files)
+                # Save the discord.File objects to local temp files so iteration/edit can reuse them reliably
+                saved_paths = []
+                for i, df in enumerate(files):
+                    try:
+                        # df.fp should be a file-like object (BytesIO)
+                        try:
+                            df.fp.seek(0)
+                        except Exception:
+                            pass
+                        data = df.fp.read()
+                        temp_path = os.path.join(CACHE_DIR, f"edited_{uuid.uuid4()}_{i}.{format}")
+                        with open(temp_path, 'wb') as tf:
+                            tf.write(data)
+                        saved_paths.append(temp_path)
+                    except Exception as e:
+                        logger.warning(f"Failed to write edited image to temp file: {e}")
+
+                # Add saved_paths to validated_paths so they are cleaned up at the end
+                if saved_paths:
+                    validated_paths.extend(saved_paths)
+
+                # Attach the same iteration view used for imagine, passing the saved local file paths
+                try:
+                    view = ImageIterationView(prompt, None, None, format, images=saved_paths if saved_paths else edited_images)
+                    await progress_msg.edit(embed=embed, view=view)
+                except Exception:
+                    await progress_msg.edit(embed=embed)
+
+                # Build new discord.File objects from saved temp paths (avoid sending consumed file-like objects)
+                send_file_objs = []
+                open_files = []
+                try:
+                    if saved_paths:
+                        for p in saved_paths:
+                            fobj = open(p, 'rb')
+                            open_files.append(fobj)
+                            send_file_objs.append(discord.File(fp=fobj, filename=os.path.basename(p)))
+                        await interaction.followup.send(files=send_file_objs)
+                    else:
+                        # Fallback: send original file objects
+                        await interaction.followup.send(files=files)
+                finally:
+                    for f in open_files:
+                        try:
+                            f.close()
+                        except Exception:
+                            pass
             else:
                 await handle_error(interaction, "Failed to prepare edited image files.", category=ErrorCategory.PROCESSING)
 
             # Cleanup
-            import os
             for path in validated_paths:
                 try:
                     os.unlink(path)
@@ -260,7 +446,6 @@ class AsyncImageQueue:
         except ValidationError as e:
             # Cleanup temp files on validation error
             if 'validated_paths' in locals() and validated_paths:
-                import os
                 for path in validated_paths:
                     try:
                         os.unlink(path)
@@ -273,7 +458,6 @@ class AsyncImageQueue:
             logger.error(f"Error details: {str(e)}")
             # Cleanup temp files on unexpected error
             if 'validated_paths' in locals() and validated_paths:
-                import os
                 for path in validated_paths:
                     try:
                         os.unlink(path)

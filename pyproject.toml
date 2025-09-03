@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "slop-bot"
 version = "0.1.0"
-description = "A Discord bot project"
+description = "Slop Bot — a Discord image-generation and editing bot using OpenRouter; supports /imagine, /edit, /blend, progress embeds, and iteration buttons."
+repository = "https://github.com/mojomast/slopbot"
 authors = [{name = "Your Name", email = "you@example.com"}]
 readme = "README.md"
 license = {file = "LICENSE"}
