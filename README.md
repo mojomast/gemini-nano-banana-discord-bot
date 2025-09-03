@@ -1,5 +1,9 @@
 # Slop Bot
 
+## 🛠️ Development Tools & AI Integrations
+
+[![Vibe](https://img.shields.io/badge/Tools-Vibe-blue?style=for-the-badge)]() [![Roo Code](https://img.shields.io/badge/IDE-Roo%20Code-orange?style=for-the-badge)]() [![VS Studio](https://img.shields.io/badge/IDE-VS%20Studio-blue?style=for-the-badge)]() [![RooCloud](https://img.shields.io/badge/Cloud-RooCloud-green?style=for-the-badge)]() [![GitHub Copilot](https://img.shields.io/badge/AI-GitHub%20Copilot-black?style=for-the-badge)]() [![Grok Code Fast](https://img.shields.io/badge/AI-Grok%20Code%20Fast-purple?style=for-the-badge)]() [![GPT 5](https://img.shields.io/badge/AI-GPT%205-red?style=for-the-badge)]() [![GPT 5 Mini](https://img.shields.io/badge/AI-GPT%205%20Mini-red?style=for-the-badge)]() [![Claude 4 Sonnet](https://img.shields.io/badge/AI-Claude%204%20Sonnet-orange?style=for-the-badge)]()
+
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://python.org)
 [![Discord.py](https://img.shields.io/badge/discord.py-2.3.2-blue.svg)](https://discordpy.readthedocs.io/)
@@ -22,7 +26,6 @@ What is actually implemented (quick map)
 - `src/utils/config.py` — loads environment variables and raises on missing required keys (see list below).
 - `Dockerfile` / `docker-compose.yml` — simple container that mounts `.env` and `.cache`.
 
-
 Running the project
 
 With Docker (recommended for quick self-hosting):
@@ -30,12 +33,10 @@ With Docker (recommended for quick self-hosting):
 1. Ensure `.env` is populated.
 2. Start the container (PowerShell):
 
-
 docker compose up --build -d
 ```
 
 3. Inspect logs:
-
 
 docker compose logs -f
 ```
@@ -44,8 +45,6 @@ Notes:
 
 - `docker-compose.yml` mounts `./.env` into the container and mounts `./.cache` to `/app/.cache` for local caching. That matches the code which reads `CACHE_DIR` (defaults to `.cache`).
 - The container runs `python -m src.bot` (see `Dockerfile`). The bot will start and attempt to sync slash commands and start the health server on port 8000.
-
-
 
 Discord Developer Portal notes
 
@@ -84,7 +83,6 @@ Tests and development
 - Tests: there is a `tests/` folder. Run `pytest` after installing dev dependencies (see `pyproject.toml`).
 - Linting / typing: project includes `pyrightconfig.json` and recommends standard tools but they are not enforced by the runtime.
 
-
 [Back to top](#slop-bot)
 
 Slop Bot offers a comprehensive suite of image manipulation tools:
@@ -101,7 +99,6 @@ Slop Bot offers a comprehensive suite of image manipulation tools:
 ### Supported Models
 
 Google Gemini 2.5 Flash Image Preview - via OpenRouter
-
 
 ## Quick Start
 
@@ -145,7 +142,6 @@ The bot will generate and post an image based on your prompt within seconds.
 ### 4. Explore Advanced Features
 
 Use more sophisticated prompts:
-
 ```
 /imagine prompt:a cyberpunk city at night, neon lights, detailed architecture style:digital art quality:9
 ```
@@ -164,6 +160,7 @@ See your creative results in action:
 ![Imagine Pig Screenshot](images/imagine_pig_screenshot.png)
 
 ## Commands
+
 ### `/imagine`
 Generate new images from text descriptions.
 
@@ -312,6 +309,7 @@ Optional:
 - Metadata: prompt, strength, sources count, model
 
 ## Rate Limiting
+
 - **/imagine**: 5 generations per 5 minutes per user
 - **/edit**: No rate limit currently implemented
 - **/blend**: 15 blends per 60 seconds per user
@@ -444,6 +442,7 @@ A: Use the ❌ reaction on the bot's message to cancel. Note that credits may st
 ## Rate Limiting & Usage Limits
 
 ### Bot-Level Rate Limits
+
 **Per-User Limits:**
 - **`"/imagine"`**: 5 generations per 5 minutes
 - **`"/edit"`**: No rate limit currently implemented
@@ -457,6 +456,7 @@ A: Use the ❌ reaction on the bot's message to cancel. Note that credits may st
 - Queue processing: FIFO with fair distribution
 
 ### OpenRouter API Limits
+
 **Global Limits:**
 - Rate limits vary by model and tier
 - Typical: 50-200 requests per minute
@@ -470,6 +470,7 @@ A: Use the ❌ reaction on the bot's message to cancel. Note that credits may st
 - Real-time monitoring and adjustment
 
 ### Managing Rate Limits
+
 **If You Hit Limits:**
 1. **Immediate Actions:**
    - Wait for cooldown (check `/info topic:status`)
@@ -489,6 +490,7 @@ A: Use the ❌ reaction on the bot's message to cancel. Note that credits may st
    - Start small, scale up gradually
 
 ### Rate Limit Monitoring
+
 **Check Current Status:**
 ```bash
 /info topic:status  # Bot health and queue
@@ -507,11 +509,7 @@ A: Use the ❌ reaction on the bot's message to cancel. Note that credits may st
 🔄 Resets in 16 days
 ```
 
-
-
-
-
-### Development Workflow
+## Development Workflow
 
 1. Fork the repository
 2. Create a feature branch
@@ -688,7 +686,7 @@ See [Contributing Guide](CONTRIBUTING.md) for detailed workflow.
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) before getting started.
+We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) for getting started.
 
 ## License
 
