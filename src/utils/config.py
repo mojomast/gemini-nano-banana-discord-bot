@@ -7,7 +7,7 @@ All application settings are defined here with defaults.
 
 import os
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from dotenv import load_dotenv
 
 # Load environment variables from .env file if present
@@ -36,6 +36,18 @@ class Config:
     allowed_image_types: List[str]
     max_image_mb: float
 
+    # Dashboard settings
+    admin_user_ids: List[str]
+    oauth_client_id: str
+    oauth_client_secret: str
+    oauth_redirect_uri: str
+    dashboard_secret_key: str
+    admin_session_ttl: int
+    admin_nonce_ttl: int
+
+    # Audit settings
+    audit_webhook_url: Optional[str]
+
     def __init__(self):
         # Discord
         self.discord_token = self._get_required_env('DISCORD_TOKEN')
@@ -60,6 +72,18 @@ class Config:
 
         # Strip whitespace from types
         self.allowed_image_types = [t.strip() for t in self.allowed_image_types]
+
+        # Dashboard
+        self.admin_user_ids = [uid.strip() for uid in os.getenv('ADMIN_USER_IDS', '').split(',') if uid.strip()]
+        self.oauth_client_id = self._get_required_env('OAUTH_CLIENT_ID')
+        self.oauth_client_secret = self._get_required_env('OAUTH_CLIENT_SECRET')
+        self.oauth_redirect_uri = self._get_required_env('OAUTH_REDIRECT_URI')
+        self.dashboard_secret_key = self._get_required_env('DASHBOARD_SECRET_KEY')
+        self.admin_session_ttl = int(os.getenv('ADMIN_SESSION_TTL_SECONDS', '1200'))
+        self.admin_nonce_ttl = int(os.getenv('ADMIN_NONCE_TTL_SECONDS', '300'))
+
+        # Audit settings
+        self.audit_webhook_url = os.getenv('AUDIT_WEBHOOK_URL')
 
     @staticmethod
     def _get_required_env(key: str) -> str:

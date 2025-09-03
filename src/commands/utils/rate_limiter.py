@@ -1,6 +1,11 @@
 import time
+import asyncio
 from collections import defaultdict, deque
 from functools import wraps
+from typing import Optional, Callable, Awaitable
+
+# Import for dynamic reloading
+from ...utils.settings_store import load_settings, reload_settings
 
 
 class RateLimitExceeded(Exception):
@@ -9,18 +14,20 @@ class RateLimitExceeded(Exception):
 
 
 class RateLimiter:
-    def __init__(self, default_limit=10, default_window=60):
+    def __init__(self, default_limit=10, default_window=60, settings_reload_callback: Optional[Callable[[], Awaitable[None]]] = None):
         """
         Initialize the rate limiter.
 
         Args:
             default_limit (int): Default number of requests allowed per window.
             default_window (int): Default time window in seconds.
+            settings_reload_callback (Optional[Callable]): Async function to call when settings reload.
         """
         self._cache = defaultdict(dict)  # user_id -> {command -> deque of timestamps}
         self.default_limit = default_limit
         self.default_window = default_window
         self._command_limits = {}  # command -> (limit, window)
+        self._settings_reload_callback = settings_reload_callback
 
     def set_command_limit(self, command, limit, window=None):
         """
@@ -149,6 +156,53 @@ class RateLimiter:
         for user_id in to_remove:
             del self._cache[user_id]
 
+    async def reload_limits_from_settings(self) -> bool:
+        """
+        Reload rate limit settings from settings_store.py.
+
+        Returns:
+            bool: True if settings were reloaded successfully, False otherwise.
+        """
+        try:
+            # Reload settings from file
+            new_settings = await reload_settings()
+            rate_limits = new_settings.rate_limits
+
+            # Update default limits if they changed
+            if hasattr(rate_limits, 'max_requests_per_minute'):
+                old_default = self.default_limit
+                self.default_limit = rate_limits.max_requests_per_minute
+                if old_default != self.default_limit:
+                    print(f"RateLimiter: Updated default limit from {old_default} to {self.default_limit}")
+
+            # Update default window to match current structure (assuming 60 seconds for simplicity)
+            # In a full implementation, this could be configurable too
+
+            # Update command-specific limits if any
+            # For now, using default mapping - could be extended for per-command limits
+
+            # Call the update callback if provided
+            if self._settings_reload_callback:
+                try:
+                    await self._settings_reload_callback()
+                except Exception as e:
+                    print(f"RateLimiter: Error in settings reload callback: {e}")
+
+            return True
+
+        except Exception as e:
+            print(f"RateLimiter: Error reloading settings: {e}")
+            return False
+
+    def set_reload_callback(self, callback: Callable[[], Awaitable[None]]):
+        """
+        Set an async callback function to be called when settings are reloaded.
+
+        Args:
+            callback: Async function that takes no arguments and returns None.
+        """
+        self._settings_reload_callback = callback
+
 
 def rate_limited(rate_limiter, user_id_param='user_id', command_name=None):
     """
@@ -238,5 +292,47 @@ def rate_limited(rate_limiter, user_id_param='user_id', command_name=None):
     return decorator
 
 
+# Utility functions for external use
+async def reload_rate_limiter_settings():
+    """
+    Convenient function to reload rate limiter settings from the global instance.
+    Can be called from external code when settings change.
+    """
+    success = await rate_limiter.reload_limits_from_settings()
+    return success
+
+async def initialize_rate_limiter():
+    """
+    Initialize rate limiter with settings and load initial configuration.
+    """
+    await rate_limiter.reload_limits_from_settings()
+
+def set_rate_limiter_reload_callback(callback: Callable[[], Awaitable[None]]):
+    """
+    Set the reload callback for the global rate limiter instance.
+    """
+    rate_limiter.set_reload_callback(callback)
+
 # Singleton instance for easy use
-rate_limiter = RateLimiter()
+try:
+    from ...utils.settings_store import load_settings
+
+    async def _initialize_with_settings():
+        global rate_limiter
+        try:
+            settings = await load_settings()
+            # Initialize with settings-based defaults
+            default_limit = getattr(settings.rate_limits, 'max_requests_per_minute', 60)
+            rate_limiter = RateLimiter(default_limit=default_limit)
+            await rate_limiter.reload_limits_from_settings()
+        except Exception as e:
+            # Fallback to defaults if settings loading fails
+            print(f"RateLimiter: Falling back to default settings: {e}")
+            rate_limiter = RateLimiter()
+
+    # For now, just create with defaults - async init would be called elsewhere
+    rate_limiter = RateLimiter()
+
+except ImportError:
+    # Fallback if settings_store is not available
+    rate_limiter = RateLimiter()

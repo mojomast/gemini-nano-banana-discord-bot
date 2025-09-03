@@ -14,12 +14,15 @@ from contextlib import asynccontextmanager
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 
 from .utils.config import config
 from .commands.utils.openrouter import OpenRouterClient
 from .commands.utils.storage import get_cache_dir
 from .commands.utils.logging import setup_logger
+from .admin.router import admin_router, set_app_reference
 
 # Configure logging
 logger = setup_logger(__name__)
@@ -55,6 +58,27 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan,
 )
+
+# Set up Jinja2 templates (when templates are needed)
+# templates are configured in the router.py
+
+# Mount static files for admin dashboard
+static_dir = Path(__file__).parent / "admin" / "static"
+if static_dir.exists():
+    app.mount("/admin/static", StaticFiles(directory=str(static_dir)), name="admin_static")
+    logger.info("Admin static files mounted")
+else:
+    logger.warning(f"Admin static files directory not found: {static_dir}")
+
+# Set reference in admin router for health app access
+set_app_reference(app)
+
+# Mount admin router
+app.include_router(admin_router)
+logger.info("Admin router mounted at /admin/")
+
+# Also mount the router under root path for easier access if needed
+# app.include_router(admin_router, prefix="")  # Optional: mount at root too
 
 # Middleware to count requests
 @app.middleware("http")

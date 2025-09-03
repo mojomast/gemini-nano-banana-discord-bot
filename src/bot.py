@@ -23,6 +23,8 @@ from .commands.edit import edit
 from .commands.blend import blend
 from .commands.help import help
 from .commands.info import info
+from .admin.auth import generate_nonce
+from .commands.utils.queue import image_processing_queue
 
 DISCORD_TOKEN: Union[str, None] = config.discord_token
 if not DISCORD_TOKEN:
@@ -161,12 +163,118 @@ async def main() -> None:
     async def info_command(interaction: discord.Interaction):
         await info(interaction)
 
+    # Admin commands
+    @app_commands.command(name="admin", description="Administrative commands")
+    @app_commands.describe(action="Action to perform (dashboard, status, invite)", ttl="TTL for dashboard links (minutes, default 5)")
+    @app_commands.choices(action=[
+        app_commands.Choice(name="dashboard", value="dashboard"),
+        app_commands.Choice(name="status", value="status"),
+        app_commands.Choice(name="invite", value="invite")
+    ])
+    async def admin_command(interaction: discord.Interaction, action: str, ttl: int = 5):
+        # Check if user is admin
+        if str(interaction.user.id) not in config.admin_user_ids:
+            await interaction.response.send_message("❌ Access denied. You are not authorized to use admin commands.", ephemeral=True)
+            return
+
+        try:
+            if ttl <= 0:
+                await interaction.response.send_message("❌ TTL must be a positive number.", ephemeral=True)
+                return
+            elif ttl > 60:
+                await interaction.response.send_message("❌ TTL cannot exceed 60 minutes.", ephemeral=True)
+                return
+
+            if action == "dashboard":
+                # Generate nonce with custom TTL (convert to seconds)
+                nonce_ttl = min(ttl * 60, 3600)  # Max 1 hour
+                nonce = generate_nonce(nonce_ttl)
+
+                # Create the dashboard URL
+                dashboard_url = f"http://localhost:8000/admin/auth/{nonce}"
+
+                embed = discord.Embed(
+                    title="🔧 Admin Dashboard Access",
+                    description=f"Click the link below to access the admin dashboard.\n\n⚠️ **This link expires in {ttl} minute(s) and can only be used once.**",
+                    color=0x3498db
+                )
+                embed.add_field(name="Dashboard URL", value=f"[Access Admin Panel]({dashboard_url})", inline=False)
+                embed.add_field(name="Valid For", value=f"{ttl} minute(s)", inline=True)
+                embed.add_field(name="Security Notes", value="• One-time use\n• Expires automatically\n• Requires Discord OAuth", inline=True)
+
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                logger.info(f"Admin dashboard link generated for user {interaction.user} (nonce: {nonce[:8]}...)")
+
+            elif action == "status":
+                # Get status metrics (synchronously for queue)
+                try:
+                    queue_length = 0
+                    try:
+                        # Access queue synchronously if possible, fallback to 0
+                        if image_processing_queue and hasattr(image_processing_queue, 'queue'):
+                            queue_length = image_processing_queue.queue.qsize()
+                    except Exception as qe:
+                        logger.debug(f"Could not get queue size: {qe}")
+                        queue_length = "Unknown"
+
+                    embed = discord.Embed(
+                        title="📊 Bot Status Report",
+                        description="Current bot health and metrics",
+                        color=0x00ff00 if config.discord_token and config.openrouter_api_key else 0xffaa00
+                    )
+
+                    embed.add_field(name="🟢 Bot Connected", value="✅ Yes" if config.discord_token else "❌ Missing token", inline=True)
+                    embed.add_field(name="🔑 API Connected", value="✅ Yes" if config.openrouter_api_key else "❌ Missing key", inline=True)
+                    embed.add_field(name="📋 Queue Length", value=str(queue_length), inline=True)
+                    embed.add_field(name="⚙️ Active Workers", value="1" if isinstance(queue_length, int) and queue_length > 0 else "0", inline=True)
+                    embed.add_field(name="👥 Processing Count", value=str(queue_length) if isinstance(queue_length, int) else "Unknown", inline=True)
+                    embed.add_field(name="🔧 Dashboard URL", value="http://localhost:8000/admin", inline=False)
+
+                    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+                except Exception as e:
+                    logger.error(f"Error getting status metrics: {e}")
+                    await interaction.response.send_message("❌ Failed to retrieve status information.", ephemeral=True)
+
+            elif action == "invite":
+                embed = discord.Embed(
+                    title="🔗 Dashboard Invitation Instructions",
+                    description=f"How to grant other users admin access to the dashboard.\n\nThe admin dashboard provides:\n• Real-time bot monitoring\n• Runtime configuration management\n• Rate limit adjustments\n• User permission controls",
+                    color=0x3498db
+                )
+
+                embed.add_field(
+                    name="Prerequisites",
+                    value="• Users must be in your Discord server\n• Their Discord user IDs must be added to `ADMIN_USER_IDS` environment variable\n• Dashboard must be accessible at the configured URL",
+                    inline=False
+                )
+                embed.add_field(
+                    name="Setup Steps",
+                    value="1. **Collect User IDs**: Get Discord user IDs for new admin users\n2. **Update Environment**: Add IDs to `ADMIN_USER_IDS` (comma-separated)\n3. **Restart Application**: Required for environment changes\n4. **Generate Access Links**: Use `/admin dashboard` command",
+                    inline=False
+                )
+                embed.add_field(
+                    name="Security Notes",
+                    value="• All admin actions are logged\n• One-time URLs prevent unauthorized access\n• OAuth2 flow requires Discord authentication\n• User permissions independent from Discord roles",
+                    inline=False
+                )
+
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+
+            else:
+                await interaction.response.send_message("❌ Invalid action. Use `dashboard`, `status`, or `invite`.", ephemeral=True)
+
+        except Exception as e:
+            logger.error(f"Error in admin command: {e}")
+            await interaction.response.send_message("❌ An error occurred while processing the admin command.", ephemeral=True)
+
     # Register slash commands
     bot.tree.add_command(imagine_command)
     bot.tree.add_command(edit_command)
     bot.tree.add_command(blend_command)
     bot.tree.add_command(help_command)
     bot.tree.add_command(info_command)
+    bot.tree.add_command(admin_command)
 
     # Start health check server in background
     async def run_health_server():

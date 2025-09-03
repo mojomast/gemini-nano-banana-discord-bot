@@ -1,0 +1,161 @@
+{% extends "template_base.html" %}
+
+{% block title %}Dashboard Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- User Info Card -->
+    <div class="col-md-4">
+        <div class="card dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-person-circle"></i> Admin User</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Discord User</h6>
+                <p class="card-text">
+                    <strong>{{ user_name|default('Unknown') }}</strong><br>
+                    ID: <code>{{ user_id|default('N/A') }}</code>
+                </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        <i class="bi bi-shield-check"></i> Authenticated Admin
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="col-md-8">
+        <div class="card dashboard-card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-graph-up"></i> Quick Stats</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ queue_length|default('0') }}</h3>
+                            <small class="text-muted">Queue Jobs</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="text-center">
+                            <h3 class="text-info">{{ active_workers|default('0') }}</h3>
+                            <small class="text-muted">Active Workers</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="text-center">
+                            <h3 class="text-warning">{{ user_rate_limit|default('5') }}</h3>
+                            <small class="text-muted">Per Min Rate Limit</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-3">
+                        <div class="text-center">
+                            <h3 class="text-danger">{{ user_override_count|default('0') }}</h3>
+                            <small class="text-muted">User Overrides</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Cards -->
+<div class="row">
+    <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <i class="bi bi-gear display-4 text-primary"></i>
+                <h5 class="card-title">Settings</h5>
+                <p class="card-text">Configure runtime settings, image settings, and processing options.</p>
+                <a href="/admin/settings" class="btn btn-primary">
+                    <i class="bi bi-gear"></i> Manage Settings
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <i class="bi bi-key display-4 text-warning"></i>
+                <h5 class="card-title">Secrets</h5>
+                <p class="card-text">Update API keys and sensitive credentials securely.</p>
+                <a href="/admin/secrets" class="btn btn-warning">
+                    <i class="bi bi-key"></i> Manage Secrets
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <i class="bi bi-speedometer2 display-4 text-danger"></i>
+                <h5 class="card-title">Rate Limits</h5>
+                <p class="card-text">Configure default and per-user rate limiting rules.</p>
+                <a href="/admin/rate-limits" class="btn btn-danger">
+                    <i class="bi bi-speedometer2"></i> Configure Limits
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <i class="bi bi-activity display-4 text-success"></i>
+                <h5 class="card-title">Bot Status</h5>
+                <p class="card-text">Monitor bot health, queue status, and system metrics.</p>
+                <a href="/admin/status" class="btn btn-success">
+                    <i class="bi bi-activity"></i> View Status
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <i class="bi bi-journal-text display-4 text-info"></i>
+                <h5 class="card-title">Audit Log</h5>
+                <p class="card-text">Browse administrative actions and change history.</p>
+                <a href="/admin/audit" class="btn btn-info">
+                    <i class="bi bi-journal-text"></i> View Audit
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-body text-center">
+                <i class="bi bi-box-arrow-right display-4 text-secondary"></i>
+                <h5 class="card-title">Logout</h5>
+                <p class="card-text">End your current admin session securely.</p>
+                <form action="/admin/logout" method="post" class="d-inline">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity Placeholder -->
+<div class="row">
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-0">Recent administrative activities will appear here.</p>
+                <small class="text-muted">
+                    Activity tracking implementation in progress.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

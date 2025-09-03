@@ -8,3 +8,9 @@ services:
     volumes:
       - ./.env:/app/.env
       - ./.cache:/app/.cache
+      - ./data:/app/data
+    ports:
+      - "8000:8000"
+    environment:
+      - DASHBOARD_HOST=0.0.0.0
+      - DASHBOARD_PORT=8000

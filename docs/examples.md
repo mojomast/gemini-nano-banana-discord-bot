@@ -5,6 +5,7 @@ This document provides practical examples of using the Slop Bot in Discord, incl
 ## Table of Contents
 
 - [Basic Commands](#basic-commands)
+- [Admin Dashboard](#admin-dashboard)
 - [Advanced Usage](#advanced-usage)
 - [Visual Examples](#visual-examples)
 - [Error Handling](#error-handling)
@@ -182,6 +183,165 @@ Check bot status, credits, or get information about available models.
 ```
 
 Lists available AI models with their capabilities and costs.
+
+## Admin Dashboard
+
+The bot includes a comprehensive admin dashboard accessible through Discord slash commands. All admin commands require users to be included in the `ADMIN_USER_IDS` allowlist.
+
+### Generate Dashboard Access
+
+Generate a secure one-time URL to access the admin dashboard.
+
+**Syntax:**
+```
+/admin dashboard
+```
+
+**Example Command:**
+```
+/admin dashboard
+```
+
+**Bot Response:**
+```
+🔐 *Generating secure admin access link...*
+
+✅ Access link created (expires in 5 minutes)
+
+🔗 Dashboard URL: https://yourdomain.com/admin/auth/abc123defg
+
+*This link is for your eyes only. It will expire automatically for security.*
+```
+
+**Security Notes:**
+- Link expires in 5 minutes by default
+- Can only be used once
+- Requires Discord OAuth2 authentication
+- Only works for authorized admin users
+
+### Check Dashboard Status
+
+Monitor dashboard availability and system health.
+
+**Syntax:**
+```
+/admin status
+```
+
+**Example Command:**
+```
+/admin status
+```
+
+**Bot Response:**
+```
+📊 *Dashboard Status Report*
+
+🟢 Dashboard Ready
+- URL: https://yourdomain.com/admin/auth/
+- Sessions: 1 active
+- Last activity: 2 minutes ago
+
+🤖 Bot Status
+- Queue: 3 pending / 2 processing
+- Health: 99.8% uptime
+- API: OpenRouter responding
+
+⚙️ Settings
+- Hot reload: Enabled
+- Audit logging: Active
+- Rate limits: 5 per 5 minutes (default)
+```
+
+### Generate Custom Access Link
+
+Create a dashboard access link with a custom TTL period.
+
+**Syntax:**
+```
+/admin invite ttl:<minutes>
+```
+
+**Example Command:**
+```
+/admin invite ttl:15
+```
+
+**Bot Response:**
+```
+⏰ *Generating extended admin access link...*
+
+✅ Custom access link created (expires in 15 minutes)
+
+🔗 Dashboard URL: https://yourdomain.com/admin/auth/custom456xyz
+
+*Link expires in 15 minutes. Use for extended admin sessions.*
+```
+
+**TTL Limits:**
+- Minimum: 1 minute
+- Maximum: 60 minutes default (configurable)
+- Recommended: 5-10 minutes for standard use
+
+### Dashboard Administration Workflows
+
+#### Settings Management
+**Update Rate Limits:**
+```
+Dashboard → Rate Limits → Edit User Overrides
+└─ Add user ID + custom limits → Save & Reload
+```
+
+**Modify Bot Settings:**
+```
+Dashboard → Settings → Runtime Configuration
+└─ Edit image settings, queue limits, timeouts → Hot Reload
+```
+
+#### Security Administration
+**Update API Keys:**
+```
+Dashboard → Secrets → OpenRouter API Key
+└─ Enter new key (masked input) → Validate & Save
+```
+
+**Review Audit Logs:**
+```
+Dashboard → Audit → Filter by action type
+└─ Review user actions, timestamps, IP addresses → Export CSV
+```
+
+#### System Monitoring
+**Real-time Health Check:**
+```
+Dashboard → Status → Live Metrics
+└─ Monitor queue depth, response times, error rates
+```
+
+### Setup Examples
+
+#### Initial Configuration
+```bash
+# 1. Add to .env file
+ADMIN_USER_IDS=123456789,987654321
+OAUTH_CLIENT_ID=your_app_id
+OAUTH_CLIENT_SECRET=your_secret
+
+# 2. Initialize dashboard
+docker compose up --build
+
+# 3. Test access
+/admin dashboard
+```
+
+#### Production Deployment
+```bash
+# 1. Configure reverse proxy
+proxy_pass http://localhost:8000/admin/;
+
+# 2. Enable HTTPS
+ssl_certificate /path/to/cert.pem;
+```
 
 ## Advanced Usage
 

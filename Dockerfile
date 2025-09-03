@@ -15,6 +15,9 @@ COPY pyproject.toml ./
 # Install dependencies
 RUN pip install --no-cache-dir .
 
+# Create data directory for persistent storage
+RUN mkdir -p /app/data && chmod 755 /app/data
+
 # Copy source code
 COPY . .
 

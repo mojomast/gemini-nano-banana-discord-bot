@@ -1,4 +1,5 @@
 import asyncio
+import time
 from dataclasses import dataclass
 from typing import Dict, Any, Optional, List
 import discord
@@ -122,8 +123,17 @@ class ImageIterationView(discord.ui.View):
         # Show the modal to the user
         await interaction.response.send_modal(EditModal(self))
 
-# Global queue instance
+# Global queue instance and metrics
 image_processing_queue = None
+
+# Metrics for admin dashboard
+queue_metrics = {
+    "requests_processed": 0,
+    "requests_failed": 0,
+    "average_processing_time": 0.0,
+    "last_processing_time": None,
+    "start_time": time.time()
+}
 
 @dataclass
 class QueueItem:
@@ -567,3 +577,40 @@ def initialize_queue():
     if image_processing_queue is None:
         image_processing_queue = AsyncImageQueue()
     return image_processing_queue
+
+def get_queue_metrics():
+    """
+    Get current queue metrics for external access (e.g., admin dashboard).
+
+    Returns:
+        Dict containing queue and processing metrics.
+    """
+    try:
+        if image_processing_queue is None:
+            return {
+                "queue_length": 0,
+                "processing_count": 0,
+                "requests_processed": queue_metrics["requests_processed"],
+                "requests_failed": queue_metrics["requests_failed"],
+                "average_processing_time": queue_metrics["average_processing_time"],
+                "uptime_seconds": time.time() - queue_metrics["start_time"]
+            }
+
+        queue_length = image_processing_queue.queue.qsize()
+        return {
+            "queue_length": queue_length,
+            "processing_count": queue_length,
+            "requests_processed": queue_metrics["requests_processed"],
+            "requests_failed": queue_metrics["requests_failed"],
+            "average_processing_time": queue_metrics["average_processing_time"],
+            "uptime_seconds": time.time() - queue_metrics["start_time"]
+        }
+    except Exception as e:
+        logger.error(f"Error getting queue metrics: {e}")
+        return {
+            "queue_length": 0,
+            "processing_count": 0,
+            "requests_processed": 0,
+            "requests_failed": 0,
+            "error": str(e)
+        }

@@ -20,7 +20,12 @@ dependencies = [
     "aiofiles==24.1.0",
     "requests==2.32.0",
     "uvicorn[standard]==0.30.0",
-    "fastapi==0.115.0"
+    "fastapi==0.115.0",
+    "jinja2",
+    "python-multipart",
+    "authlib",
+    "itsdangerous",
+    "cryptography"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

@@ -331,6 +331,97 @@ For advanced setups, see our detailed configuration guide:
 - [Discord App Setup](SELF_HOSTING.md)
 - [Deployment Options](DEPLOYMENT.md)
 
+## Admin Dashboard
+
+The bot includes a secure web-based admin dashboard for managing configuration, monitoring bot status, and viewing audit logs. Access requires Discord authentication and admin privileges.
+
+### Accessing the Dashboard
+
+Use Discord slash commands to generate secure access links:
+
+**Generate dashboard access:**
+```
+/admin dashboard
+```
+
+**Check dashboard status:**
+```
+/admin status
+```
+
+**Generate custom access link:**
+```
+/admin invite ttl:10
+```
+
+### Required Environment Variables
+
+Add these to your `.env` file:
+
+```bash
+# Admin Authentication
+ADMIN_USER_IDS=123456789,987654321    # Comma-separated Discord user IDs
+ADMIN_SESSION_TTL_SECONDS=1200        # Session timeout (20 minutes)
+ADMIN_NONCE_TTL_SECONDS=300          # One-time URL lifetime (5 minutes)
+
+# Discord OAuth2
+OAUTH_CLIENT_ID=your_discord_app_id
+OAUTH_CLIENT_SECRET=your_discord_app_secret
+OAUTH_REDIRECT_URI=https://yourdomain.com/admin/callback
+
+# Dashboard Configuration
+DASHBOARD_SECRET_KEY=random_secret_for_sessions
+SETTINGS_FILE=./data/settings.json
+AUDIT_LOG_FILE=./data/audit.log
+
+# Optional
+DISCORD_ADMIN_LOG_CHANNEL_ID=123456789  # Channel for audit notifications
+DASHBOARD_HOST=0.0.0.0
+DASHBOARD_PORT=8000
+```
+
+### Dashboard Features
+
+- **Settings Management**: Modify runtime configuration without restart
+- **Rate Limiting**: Configure per-user limits and overrides
+- **Secrets Management**: Update API keys securely (write-only)
+- **Status Monitoring**: Real-time bot health metrics and queue status
+- **Audit Logs**: Comprehensive change history with user attribution
+- **Security**: CSRF protection, session management, OAuth2 authentication
+
+### Setup Steps
+
+1. **Discord OAuth2 Setup:**
+   - Go to [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create/modify your bot application
+   - Add OAuth2 redirect URI: `https://yourdomain.com/admin/callback`
+   - Copy client ID and secret to environment variables
+
+2. **Environment Configuration:**
+   - Add admin user IDs (Discord user IDs of authorized admins)
+   - Configure session and nonce TTL settings
+   - Generate secure random key for sessions
+
+3. **Deployment:**
+   - Mount `data/` directory for persistent storage
+   - Expose port 8000 with reverse proxy
+   - Enable HTTPS for security
+
+### Security Notes
+
+- One-time URLs expire in 5 minutes for security
+- All actions are logged to tamper-evident audit trail
+- OAuth2 authentication with admin allowlist validation
+- Secrets are never displayed in the web interface
+- Session-based access with configurable timeouts
+
+### Documentation
+
+- [Dashboard Implementation Guide](dashboarddev.md)
+- [Admin Command Examples](docs/examples.md#admin-dashboard)
+- [Security Best Practices](SECURITY.md)
+- [Configuration Guide](CONFIG.md)
+
 ## Examples
 
 Check out our extensive examples collection:

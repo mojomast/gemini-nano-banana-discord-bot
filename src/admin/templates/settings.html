@@ -1,0 +1,120 @@
+{% extends "template_base.html" %}
+
+{% block title %}Runtime Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="bi bi-gear"></i> Runtime Configuration</h4>
+            </div>
+            <div class="card-body">
+                <!-- Success/Error Messages -->
+                {% if success_message %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> {{ success_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+                {% if error_message %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> {{ error_message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+
+                <!-- Settings Form -->
+                <form method="post" action="/admin/settings">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+
+                    <!-- Rate Limits Section -->
+                    <h5 class="mt-4 mb-3"><i class="bi bi-speedometer2"></i> Rate Limits</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="rate_limit_default_per_minute" class="form-label">Default Per Minute</label>
+                            <input type="number" class="form-control" id="rate_limit_default_per_minute" name="rate_limit_default_per_minute"
+                                   value="{{ settings.rate_limits.default.per_minute|default(5) }}" min="1" max="100" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="rate_limit_default_per_hour" class="form-label">Default Per Hour</label>
+                            <input type="number" class="form-control" id="rate_limit_default_per_hour" name="rate_limit_default_per_hour"
+                                   value="{{ settings.rate_limits.default.per_hour|default(50) }}" min="1" max="500" required>
+                        </div>
+                    </div>
+
+                    <!-- Image Settings Section -->
+                    <h5 class="mt-4 mb-3"><i class="bi bi-image"></i> Image Settings</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="max_size_mb" class="form-label">Max Size (MB)</label>
+                            <input type="number" class="form-control" id="max_size_mb" name="max_size_mb" step="0.1"
+                                   value="{{ settings.image_settings.max_size_mb|default(10.0) }}" min="1" max="100" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="default_format" class="form-label">Default Format</label>
+                            <select class="form-select" id="default_format" name="default_format" required>
+                                <option value="png" {{ 'selected' if settings.image_settings.default_format|default('png') == 'png' else '' }}>PNG</option>
+                                <option value="jpg" {{ 'selected' if settings.image_settings.default_format|default('png') == 'jpg' else '' }}>JPG</option>
+                                <option value="webp" {{ 'selected' if settings.image_settings.default_format|default('png') == 'webp' else '' }}>WebP</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Allowed Types</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allow_png" name="allow_png" value="png" {{ 'checked' if 'png' in settings.image_settings.allowed_types|default(['png','jpg','webp']) else '' }}>
+                                <label class="form-check-label" for="allow_png">PNG</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allow_jpg" name="allow_jpg" value="jpg" {{ 'checked' if 'jpg' in settings.image_settings.allowed_types|default(['png','jpg','webp']) else '' }}>
+                                <label class="form-check-label" for="allow_jpg">JPG</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="allow_webp" name="allow_webp" value="webp" {{ 'checked' if 'webp' in settings.image_settings.allowed_types|default(['png','jpg','webp']) else '' }}>
+                                <label class="form-check-label" for="allow_webp">WebP</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Settings Section -->
+                    <h5 class="mt-4 mb-3"><i class="bi bi-cpu"></i> Processing Settings</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="queue_depth" class="form-label">Queue Depth</label>
+                            <input type="number" class="form-control" id="queue_depth" name="queue_depth"
+                                   value="{{ settings.processing.queue_depth|default(100) }}" min="1" max="1000" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="worker_threads" class="form-label">Worker Threads</label>
+                            <input type="number" class="form-control" id="worker_threads" name="worker_threads"
+                                   value="{{ settings.processing.worker_threads|default(2) }}" min="1" max="20" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="timeout_seconds" class="form-label">Timeout (Seconds)</label>
+                            <input type="number" class="form-control" id="timeout_seconds" name="timeout_seconds"
+                                   value="{{ settings.processing.timeout_seconds|default(60) }}" min="10" max="300" required>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between">
+                                <div class="text-muted">
+                                    <small><i class="bi bi-info-circle"></i> Changes take effect immediately.</small>
+                                </div>
+                                <div>
+                                    <a href="/admin/" class="btn btn-secondary me-2">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save"></i> Save Settings
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

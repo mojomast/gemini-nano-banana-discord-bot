@@ -1,0 +1,18 @@
+{
+  "rate_limits": {
+    "max_requests_per_minute": 60,
+    "max_requests_per_hour": 1000,
+    "max_images_per_day": 500
+  },
+  "image_settings": {
+    "max_size_mb": 10.0,
+    "allowed_types": ["png", "jpg", "jpeg", "webp"],
+    "quality": 85,
+    "compression": "lossy"
+  },
+  "processing": {
+    "max_concurrent_jobs": 5,
+    "timeout_seconds": 60,
+    "retry_attempts": 3
+  }
+}
