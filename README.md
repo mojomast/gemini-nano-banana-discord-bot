@@ -1,10 +1,10 @@
 # gemini-nano-banana-discord-bot
 
-![RooCode Badge](./images/RooCode-Badge-blk.webp)
+![roocode svg](./images/roobadge.svg)
 
 Vibe coded with [RooCode.](https://github.com/RooCodeInc/Roo-Code/)
 
-![roocode svg](./images/roobadge.svg)
+
 
 ## 🛠️ Development Tools & AI Integrations
 
@@ -88,82 +88,75 @@ Tips
 - DM the bot for private experiments; iteration controls still work.
 - If attachments fail after edits, ensure `CACHE_DIR` (default `.cache`) is writable.
 
-Repository structure
-src/bot.py — bot bootstrap, slash command registration, health server.
+## Repository structure
+- `src/bot.py` — bot bootstrap, slash command registration, health server
+- `src/commands/` — imagine, edit, blend, help, info command handlers
+- `src/commands/utils/` — OpenRouter client, queue, validators, error handling, logging, rate limiter, storage, images, styles
+- `src/health_check.py` — FastAPI app for health/readiness/metrics
+- `.env.example` — environment variables template
+- `Dockerfile` and `docker-compose.yml` — containerization
+- `CONFIG.md`, `ENV_SETUP.md`, `SELF_HOSTING.md`, `DEPLOYMENT.md` — additional docs
 
-src/commands/ — imagine, edit, blend, help, info command handlers.
+## Prerequisites
+- Discord bot application and token (Developer Portal)
+- OpenRouter API key with access to the model
+- Python 3.11+ if running locally; Docker optional for deployment
+- Populate `.env` from `.env.example`
 
-src/commands/utils/ — OpenRouter client, queue, validators, error handling, logging, rate limiter, storage, images, styles.
+## Environment variables
+Copy `.env.example` to `.env` and fill in values.
 
-src/health_check.py — FastAPI app for /health.
-
-.env.example — environment variables template.
-
-Dockerfile and docker-compose.yml — containerization.
-
-CONFIG.md, ENV_SETUP.md, SELF_HOSTING.md, DEPLOYMENT.md — additional docs stubs.
-
-Prerequisites
-Discord bot application and token (Developer Portal).
-
-OpenRouter API key with access to the model.
-
-Python 3.11+ if running locally; Docker optional for deployment.
-
-Populate .env from .env.example.
-
-Environment variables
-Copy .env.example to .env and fill in values.
-
-DISCORD_TOKEN: Discord bot token.
-
-OPENROUTER_API_KEY: OpenRouter API key.
-
-OPENROUTER_BASE_URL: Defaults to https://openrouter.ai/api/v1.
-
-MODEL_ID: Defaults to google/gemini-2.5-flash-image-preview.
-
-LOG_LEVEL: INFO by default; set DEBUG for verbose logs.
-
-CACHE_DIR: .cache default for temporary files.
-
-ALLOWED_IMAGE_TYPES: png,jpg,jpeg,webp.
-
-MAX_IMAGE_MB: 10 (MB).
-
-CONCURRENCY: 2 concurrent operations default.
+- `DISCORD_TOKEN`: Discord bot token
+- `OPENROUTER_API_KEY`: OpenRouter API key
+- `OPENROUTER_BASE_URL`: Defaults to https://openrouter.ai/api/v1
+- `MODEL_ID`: Defaults to google/gemini-2.5-flash-image-preview
+- `LOG_LEVEL`: INFO by default; set DEBUG for verbose logs
+- `CACHE_DIR`: .cache default for temporary files
+- `ALLOWED_IMAGE_TYPES`: png,jpg,jpeg,webp
+- `MAX_IMAGE_MB`: 10 (MB)
+- `CONCURRENCY`: 2 concurrent operations default
 
 Note: OPENROUTER_API_KEY and DISCORD_TOKEN are required; the app exits early if missing.
 
-Installation
-Option A — Docker (recommended):
+## Installation
 
-Ensure .env is populated at project root.
+### Option A — Docker (recommended)
+1. Ensure `.env` is populated at project root.
+2. Start the stack (PowerShell):
 
-Start: docker compose up --build -d.
+```powershell
+docker compose up --build -d
+```
 
-Logs: docker compose logs -f.
+3. View logs:
 
-Health server exposed at 8000 inside container.
+```powershell
+docker compose logs -f
+```
 
-Option B — Local (development):
+Health server is exposed at `8000` inside the container.
 
-pip install -e . from repo root (pyproject.toml present).
+### Option B — Local (development)
+1. Install the package from repo root (with `pyproject.toml`):
 
-Run with python -m src.bot.
+```powershell
+pip install -e .
+```
 
-Use LOG_LEVEL=DEBUG for development troubleshooting.
+2. Run the bot:
 
-Discord setup
-Create App + Bot in Developer Portal.
+```powershell
+python -m src.bot
+```
 
-OAuth2 → URL Generator: scopes bot, applications.commands.
+Set `LOG_LEVEL=DEBUG` in `.env` for development troubleshooting.
 
-Minimal permissions: Send Messages, Attach Files, Use Slash Commands.
-
-Invite the bot to a test server via generated URL.
-
-On ready, the bot syncs slash commands automatically. If not visible, check token and scopes.
+## Discord setup
+1. Create App + Bot in the Developer Portal
+2. OAuth2 → URL Generator: scopes `bot`, `applications.commands`
+3. Minimal permissions: Send Messages, Attach Files, Use Slash Commands
+4. Invite the bot to a test server via the generated URL
+5. On ready, the bot syncs slash commands automatically; if not visible, check token and scopes
 
 Commands
 /imagine — Generate images from text.
@@ -204,16 +197,13 @@ Examples:
 
 /info — Shows model, version, usage notes.
 
-Interactive iteration
+## Interactive iteration
 After generation/editing, an interactive View adds:
 
-Reroll — regenerate with same prompt, new seed.
-
-Variations — generate 4 variations.
-
-Same Seed — regenerate with the same seed if available.
-
-Edit — opens modal to apply a new edit to a selected generated result.
+- Reroll — regenerate with same prompt, new seed.
+- Variations — generate 4 variations.
+- Same Seed — regenerate with the same seed if available.
+- Edit — opens modal to apply a new edit to a selected generated result.
 
 Details:
 - Reroll: same prompt, fresh randomness for diversity.
@@ -221,50 +211,47 @@ Details:
 - Same Seed: reproduce composition with minor noise changes; great for A/B tweaks.
 - ✏️ Edit: opens a modal to enter a new edit prompt and optional target image index.
 
-Runtime behavior
-Early exit without DISCORD_TOKEN; raises ValueError.
-
-OpenRouter client raises if OPENROUTER_API_KEY missing.
-
-Health server runs on port 8000 via uvicorn task.
-
-Cache directory created if missing by storage utilities.
-
-API calls include retry/backoff on 429/5xx/timeouts; logs error bodies when available.
+## Runtime behavior
+- Early exit without `DISCORD_TOKEN`; raises `ValueError`.
+- OpenRouter client raises if `OPENROUTER_API_KEY` missing.
+- Health server runs on port `8000` via uvicorn task.
+- Cache directory created if missing by storage utilities.
+- API calls include retry/backoff on 429/5xx/timeouts; logs error bodies when available.
 
 Notes:
-- Concurrency is controlled via `CONCURRENCY` (default 2). The async queue prevents overload and respects rate limits.
-- Files are written to `CACHE_DIR` (default `.cache`) so edited outputs can be safely re-attached and re-edited.
+- Concurrency: Controlled via `CONCURRENCY` (default 2). Increase gradually; high values can trigger Discord/OpenRouter rate limits and make the queue less fair for other users.
+- Rate limits: App-level rate limiting complements provider limits. If you see 429s or slowdowns, reduce batch sizes or wait. Check logs for backoff/retry messages.
+- Health & observability: Health server listens on port `8000` with `/healthz`, `/ready`, and `/metrics`. Map the port in Docker if you want to reach it from the host.
+- Caching: Files are written to `CACHE_DIR` (default `.cache`). Persist this as a Docker volume to enable reliable re-edits and avoid broken Discord attachments. Ensure the directory is writable (Windows/NTFS permissions).
+- File limits: Upload validation enforces `ALLOWED_IMAGE_TYPES` and `MAX_IMAGE_MB` (default 10MB). Mismatches or oversized files will be rejected with a friendly error.
+- Model/endpoint overrides: You can set `MODEL_ID` and `OPENROUTER_BASE_URL` in `.env`. Make sure your OpenRouter key has access to the chosen model.
+- Networking: Corporate proxies/firewalls can block API calls. Configure proxy env vars if needed or test from a different network.
+- Logging: Set `LOG_LEVEL=DEBUG` for deeper diagnostics during development; error bodies are logged when available to speed up troubleshooting.
 
-Troubleshooting
-Container exits immediately: check docker compose logs for missing env var ValueError.
+## Troubleshooting
+- Container exits immediately: check `docker compose logs` for missing env var `ValueError`.
+- Commands fail to sync: confirm correct bot token, scopes, and re-invite with `applications.commands`.
+- OpenRouter errors/timeouts: verify `OPENROUTER_BASE_URL`, connectivity, and rate limits; enable `DEBUG` logs.
+- Upload validation errors: ensure image types and size limits per config.
 
-Commands fail to sync: confirm correct bot token, scopes, and re-invite with applications.commands.
+## Development
+- Tests: run `pytest` from project root.
+- Typing/Linting: `pyrightconfig.json` present; typical Python tooling can be used.
+- Queue architecture: `AsyncImageQueue` with background worker and Discord embeds for progress stages.
+- OpenRouter client: flexible response parsing to extract base64 image data across variants.
 
-OpenRouter errors/timeouts: verify OPENROUTER_BASE_URL, connectivity, and rate limits; enable DEBUG logs.
+## Deployment notes
+- Docker container runs `python -m src.bot`; mount `.env` and `.cache` via volumes.
+- Expose `8000` if external health checks are desired; compose file maps port accordingly.
+- Add a restart policy and `healthcheck` in compose for resilience.
 
-Upload validation errors: ensure image types and size limits per config.
+## Security
+- Keep API keys and bot tokens in `.env`; do not bake into image layers.
+- Privileged intents are disabled by default to avoid errors; re-enable only if needed and approved.
+- Review Discord permissions; avoid Administrator in production if not necessary.
 
-Development
-Tests: run pytest from project root.
 
-Typing/Linting: pyrightconfig.json present; typical Python tooling can be used.
 
-Queue architecture: AsyncImageQueue with background worker and Discord embeds for progress stages.
+![RooCode Badge](./images/RooCode-Badge-blk.webp)
 
-OpenRouter client: flexible response parsing to extract base64 image data across variants.
-
-Deployment notes
-Docker container runs python -m src.bot; mount .env and .cache via volumes.
-
-Expose 8000 if external health checks are desired; compose file maps port accordingly.
-
-Restart policy and healthcheck can be added in compose for resilience.
-
-Security
-Keep API keys and bot tokens in .env; do not bake into image layers.
-
-Privileged intents are disabled by default to avoid errors; re-enable only if needed and approved.
-
-Review Discord permissions; avoid Administrator in production if not necessary.
-
+Copyright 2025 Kyle Durepos
